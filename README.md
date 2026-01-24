@@ -7,7 +7,7 @@ Symfony bundle that enforces a consistent voter-based authorization standard for
 
 ## Key ideas
 
-- Opt-in per resource via `#[ApiPlatformVoterProtected]`.
+- Opt-in per resource via `#[ApiResourceVoter]`.
 - CRUD operations are mapped to namespaced voter attributes: `{prefix}:{operation}`.
 - Custom operations must be explicitly allowed in the concrete voter.
 - UPDATE subjects are passed as `[newObject, previousObject]`.
@@ -24,10 +24,10 @@ composer require nexara/api-platform-voter
 
 ```php
 use ApiPlatform\Metadata\ApiResource;
-use Nexara\ApiPlatformVoter\Attribute\ApiPlatformVoterProtected;
+use Nexara\ApiPlatformVoter\Attribute\ApiResourceVoter;
 
 #[ApiResource]
-#[ApiPlatformVoterProtected(prefix: 'video', voter: VideoVoter::class)]
+#[ApiResourceVoter(prefix: 'video', voter: VideoVoter::class)]
 final class Video
 {
 }

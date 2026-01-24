@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nexara\ApiPlatformVoter\Security\Voter;
 
 use LogicException;
+use ReflectionClass;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
@@ -41,6 +42,11 @@ abstract class CrudVoter extends Voter
                 throw new LogicException("Class '{$class}' not found.");
             }
         }
+
+        if (! isset($this->prefix) && $this->resourceClasses !== []) {
+            $ref = new ReflectionClass($this->resourceClasses[0]);
+            $this->prefix = strtolower($ref->getShortName());
+        }
     }
 
     protected function supports(string $attribute, mixed $subject): bool
@@ -53,7 +59,7 @@ abstract class CrudVoter extends Voter
         }
 
         if (! isset($this->prefix)) {
-            throw new LogicException('Set prefix via setPrefix() in constructor.');
+            $this->initializePrefix();
         }
 
         if (! str_starts_with($attribute, $this->prefix . ':')) {
@@ -175,5 +181,15 @@ abstract class CrudVoter extends Voter
         }
 
         return [$subject, null];
+    }
+
+    private function initializePrefix(): void
+    {
+        if ($this->resourceClasses === []) {
+            throw new LogicException('Set resource classes via setResourceClasses() in constructor.');
+        }
+
+        $ref = new ReflectionClass($this->resourceClasses[0]);
+        $this->prefix = strtolower($ref->getShortName());
     }
 }

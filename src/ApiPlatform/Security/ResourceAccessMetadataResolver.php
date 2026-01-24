@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Nexara\ApiPlatformVoter\ApiPlatform\Security;
 
-use Nexara\ApiPlatformVoter\Attribute\ApiPlatformVoterProtected;
+use Nexara\ApiPlatformVoter\Attribute\ApiResourceVoter;
 use Psr\Cache\CacheItemPoolInterface;
 use ReflectionClass;
 
@@ -34,12 +34,12 @@ final class ResourceAccessMetadataResolver implements ResourceAccessMetadataReso
         }
 
         $ref = new ReflectionClass($resourceClass);
-        $attrs = $ref->getAttributes(ApiPlatformVoterProtected::class);
+        $attrs = $ref->getAttributes(ApiResourceVoter::class);
 
         if ($attrs === []) {
             $metadata = new ResourceAccessMetadata(false, null, null);
         } else {
-            /** @var ApiPlatformVoterProtected $cfg */
+            /** @var ApiResourceVoter $cfg */
             $cfg = $attrs[0]->newInstance();
 
             $prefix = $cfg->prefix;
