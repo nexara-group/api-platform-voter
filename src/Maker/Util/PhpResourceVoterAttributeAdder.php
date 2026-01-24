@@ -5,11 +5,6 @@ declare(strict_types=1);
 namespace Nexara\ApiPlatformVoter\Maker\Util;
 
 use Nexara\ApiPlatformVoter\Attribute\ApiResourceVoter;
-use PhpParser\Node;
-use PhpParser\NodeTraverser;
-use PhpParser\NodeVisitorAbstract;
-use PhpParser\ParserFactory;
-use PhpParser\PrettyPrinter\Standard;
 use ReflectionClass;
 
 final class PhpResourceVoterAttributeAdder
@@ -31,213 +26,79 @@ final class PhpResourceVoterAttributeAdder
             throw new \RuntimeException("Cannot read file '{$file}'.");
         }
 
-        $parser = (new ParserFactory())->createForNewestSupportedVersion();
-
-        try {
-            $ast = $parser->parse($code);
-        } catch (\Throwable $e) {
-            throw new \RuntimeException("Cannot parse '{$file}': {$e->getMessage()}");
+        // Check if attribute already exists
+        if ($this->hasApiResourceVoterAttribute($code)) {
+            return;
         }
 
-        if (! is_array($ast)) {
-            throw new \RuntimeException("Cannot parse '{$file}'.");
+        // Add use statements if needed
+        $code = $this->addUseStatements($code, $voterFqcn);
+
+        // Add attribute to class
+        $code = $this->addAttributeToClass($code, $resourceClass, $voterFqcn, $prefix);
+
+        file_put_contents($file, $code);
+    }
+
+    private function hasApiResourceVoterAttribute(string $code): bool
+    {
+        return preg_match('/#\[ApiResourceVoter\s*\(/i', $code) === 1;
+    }
+
+    private function addUseStatements(string $code, string $voterFqcn): string
+    {
+        $apiResourceVoterUse = 'use ' . ApiResourceVoter::class . ';';
+        $voterUse = 'use ' . $voterFqcn . ';';
+
+        // Check if ApiResourceVoter use already exists
+        if (!str_contains($code, $apiResourceVoterUse)) {
+            // Find the last use statement
+            if (preg_match('/^use\s+[^;]+;/m', $code, $matches, PREG_OFFSET_CAPTURE)) {
+                $lastUsePos = $matches[0][1] + strlen($matches[0][0]);
+                $code = substr_replace($code, "\n" . $apiResourceVoterUse, $lastUsePos, 0);
+            }
         }
 
-        $visitor = new class($resourceClass, $voterFqcn, $prefix) extends NodeVisitorAbstract {
-            public function __construct(
-                private readonly string $resourceClass,
-                private readonly string $voterFqcn,
-                private readonly ?string $prefix,
-            ) {
+        // Check if Voter use already exists
+        if (!str_contains($code, $voterUse)) {
+            // Find the last use statement
+            if (preg_match_all('/^use\s+[^;]+;/m', $code, $matches, PREG_OFFSET_CAPTURE)) {
+                $lastMatch = end($matches[0]);
+                $lastUsePos = $lastMatch[1] + strlen($lastMatch[0]);
+                $code = substr_replace($code, "\n" . $voterUse, $lastUsePos, 0);
             }
+        }
 
-            private ?string $namespace = null;
+        return $code;
+    }
 
-            /**
-             * @var array<string, string>
-             */
-            private array $uses = [];
+    private function addAttributeToClass(string $code, string $resourceClass, string $voterFqcn, ?string $prefix): string
+    {
+        $shortClassName = $this->getShortClassName($resourceClass);
+        $voterShortName = $this->getShortClassName($voterFqcn);
 
-            private bool $changed = false;
+        // Build attribute string
+        if ($prefix !== null && $prefix !== '') {
+            $attributeString = "#[ApiResourceVoter(voter: {$voterShortName}::class, prefix: '{$prefix}')]";
+        } else {
+            $attributeString = "#[ApiResourceVoter(voter: {$voterShortName}::class)]";
+        }
 
-            public function enterNode(Node $node): ?int
-            {
-                if ($node instanceof Node\Stmt\Namespace_) {
-                    $this->namespace = $node->name?->toString();
-                    $this->uses = [];
+        // Find the class declaration and add attribute before it
+        // Look for pattern: (optional attributes) class ClassName
+        $pattern = '/((?:#\[[^\]]+\]\s*)*)(class\s+' . preg_quote($shortClassName, '/') . '\s)/m';
 
-                    foreach ($node->stmts as $stmt) {
-                        if ($stmt instanceof Node\Stmt\Use_) {
-                            foreach ($stmt->uses as $use) {
-                                $alias = $use->alias?->toString() ?? $use->name->getLast();
-                                $this->uses[$alias] = $use->name->toString();
-                            }
-                        }
-                    }
-                }
+        if (preg_match($pattern, $code, $matches, PREG_OFFSET_CAPTURE)) {
+            $insertPos = $matches[1][1] + strlen($matches[1][0]);
+            $code = substr_replace($code, $attributeString . "\n", $insertPos, 0);
+        }
 
-                if ($node instanceof Node\Stmt\Class_ && $node->name) {
-                    $className = $node->name->toString();
-                    $fqcn = $this->namespace ? $this->namespace . '\\' . $className : $className;
+        return $code;
+    }
 
-                    if ($fqcn !== $this->resourceClass) {
-                        return null;
-                    }
-
-                    if ($this->hasApiResourceVoterAttribute($node->attrGroups)) {
-                        return null;
-                    }
-
-                    $args = [
-                        new Node\Arg(
-                            new Node\Expr\ClassConstFetch(
-                                new Node\Name($this->shortClassName($this->voterFqcn)),
-                                'class',
-                            ),
-                            false,
-                            false,
-                            [],
-                            new Node\Identifier('voter'),
-                        ),
-                    ];
-
-                    if (is_string($this->prefix) && $this->prefix !== '') {
-                        $args[] = new Node\Arg(
-                            new Node\Scalar\String_($this->prefix),
-                            false,
-                            false,
-                            [],
-                            new Node\Identifier('prefix'),
-                        );
-                    }
-
-                    $node->attrGroups[] = new Node\AttributeGroup([
-                        new Node\Attribute(
-                            new Node\Name('ApiResourceVoter'),
-                            $args,
-                        ),
-                    ]);
-
-                    $this->changed = true;
-
-                    return null;
-                }
-
-                return null;
-            }
-
-            public function afterTraverse(array $nodes): ?array
-            {
-                if (! $this->changed) {
-                    return null;
-                }
-
-                $apiResourceVoterImport = ApiResourceVoter::class;
-                $voterImport = $this->voterFqcn;
-
-                return $this->ensureUses($nodes, [
-                    $apiResourceVoterImport,
-                    $voterImport,
-                ]);
-            }
-
-            /**
-             * @param Node\AttributeGroup[] $attrGroups
-             */
-            private function hasApiResourceVoterAttribute(array $attrGroups): bool
-            {
-                foreach ($attrGroups as $group) {
-                    foreach ($group->attrs as $attr) {
-                        $name = $attr->name->toString();
-                        $resolved = $this->resolveName($name);
-
-                        if ($resolved === ApiResourceVoter::class) {
-                            return true;
-                        }
-                    }
-                }
-
-                return false;
-            }
-
-            private function resolveName(string $name): string
-            {
-                $name = ltrim($name, '\\');
-
-                if (str_contains($name, '\\')) {
-                    return $name;
-                }
-
-                return $this->uses[$name] ?? ($this->namespace ? $this->namespace . '\\' . $name : $name);
-            }
-
-            /**
-             * @param Node[] $nodes
-             * @param list<string> $imports
-             * @return Node[]|null
-             */
-            private function ensureUses(array $nodes, array $imports): ?array
-            {
-                foreach ($nodes as $node) {
-                    if (! $node instanceof Node\Stmt\Namespace_) {
-                        continue;
-                    }
-
-                    $existing = [];
-                    $firstUseIndex = null;
-
-                    foreach ($node->stmts as $i => $stmt) {
-                        if ($stmt instanceof Node\Stmt\Use_) {
-                            $firstUseIndex ??= $i;
-                            foreach ($stmt->uses as $use) {
-                                $existing[$use->name->toString()] = true;
-                            }
-                        }
-                    }
-
-                    $newUses = [];
-                    foreach ($imports as $fqcn) {
-                        if (isset($existing[$fqcn])) {
-                            continue;
-                        }
-
-                        $newUses[] = new Node\Stmt\Use_([
-                            new Node\Stmt\UseUse(new Node\Name($fqcn)),
-                        ]);
-                    }
-
-                    if ($newUses === []) {
-                        return null;
-                    }
-
-                    if ($firstUseIndex === null) {
-                        array_splice($node->stmts, 0, 0, $newUses);
-                    } else {
-                        array_splice($node->stmts, $firstUseIndex, 0, $newUses);
-                    }
-
-                    return $nodes;
-                }
-
-                return null;
-            }
-
-            private function shortClassName(string $fqcn): string
-            {
-                $fqcn = ltrim($fqcn, '\\');
-                $parts = explode('\\', $fqcn);
-
-                return end($parts) ?: $fqcn;
-            }
-        };
-
-        $traverser = new NodeTraverser();
-        $traverser->addVisitor($visitor);
-        $newAst = $traverser->traverse($ast);
-
-        $printer = new Standard();
-        $newCode = $printer->prettyPrintFile($newAst);
-
-        file_put_contents($file, $newCode);
+    private function getShortClassName(string $fqcn): string
+    {
+        $parts = explode('\\', ltrim($fqcn, '\\'));
+        return end($parts) ?: $fqcn;
     }
 }
