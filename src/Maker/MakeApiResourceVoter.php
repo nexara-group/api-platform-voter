@@ -16,8 +16,6 @@ use Symfony\Bundle\MakerBundle\Maker\AbstractMaker;
 use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Question\ChoiceQuestion;
-use Symfony\Component\Console\Question\Question;
 
 final class MakeApiResourceVoter extends AbstractMaker
 {
@@ -56,9 +54,7 @@ final class MakeApiResourceVoter extends AbstractMaker
             return;
         }
 
-        $helper = $io->getHelperSet()->get('question');
-        $question = new ChoiceQuestion('Select an ApiResource:', $resources);
-        $resourceClass = $helper->ask($input, $io, $question);
+        $resourceClass = $io->choice('Select an ApiResource:', $resources);
 
         if (! is_string($resourceClass) || $resourceClass === '') {
             $io->error('Invalid resource selection.');
@@ -69,16 +65,14 @@ final class MakeApiResourceVoter extends AbstractMaker
         $resourceShort = Str::getShortClassName($resourceClass);
         $defaultVoterClassName = $resourceShort . 'Voter';
 
-        $voterClassQuestion = new Question('Voter class name', $defaultVoterClassName);
-        $voterClassName = $helper->ask($input, $io, $voterClassQuestion);
+        $voterClassName = $io->ask('Voter class name', $defaultVoterClassName);
         if (! is_string($voterClassName) || $voterClassName === '') {
             $io->error('Invalid voter class name.');
 
             return;
         }
 
-        $prefixQuestion = new Question('Optional prefix (leave empty to omit prefix)', null);
-        $prefix = $helper->ask($input, $io, $prefixQuestion);
+        $prefix = $io->ask('Optional prefix (leave empty to omit prefix)', null);
         $prefix = is_string($prefix) && $prefix !== '' ? $prefix : null;
 
         $voterFqcn = 'App\\Security\\Voter\\' . $voterClassName;
