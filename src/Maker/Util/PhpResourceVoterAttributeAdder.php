@@ -17,7 +17,7 @@ final class PhpResourceVoterAttributeAdder
 
         $ref = new ReflectionClass($resourceClass);
         $file = $ref->getFileName();
-        if (! is_string($file) || $file === '' || ! is_file($file)) {
+        if (! is_string($file) || ! is_file($file)) {
             throw new \RuntimeException("Cannot locate file for resource class '{$resourceClass}'.");
         }
 
@@ -51,7 +51,7 @@ final class PhpResourceVoterAttributeAdder
         $voterUse = 'use ' . $voterFqcn . ';';
 
         // Check if ApiResourceVoter use already exists
-        if (!str_contains($code, $apiResourceVoterUse)) {
+        if (! str_contains($code, $apiResourceVoterUse)) {
             // Find the last use statement
             if (preg_match('/^use\s+[^;]+;/m', $code, $matches, PREG_OFFSET_CAPTURE)) {
                 $lastUsePos = $matches[0][1] + strlen($matches[0][0]);
@@ -60,12 +60,14 @@ final class PhpResourceVoterAttributeAdder
         }
 
         // Check if Voter use already exists
-        if (!str_contains($code, $voterUse)) {
+        if (! str_contains($code, $voterUse)) {
             // Find the last use statement
             if (preg_match_all('/^use\s+[^;]+;/m', $code, $matches, PREG_OFFSET_CAPTURE)) {
                 $lastMatch = end($matches[0]);
-                $lastUsePos = $lastMatch[1] + strlen($lastMatch[0]);
-                $code = substr_replace($code, "\n" . $voterUse, $lastUsePos, 0);
+                if ($lastMatch !== false) {
+                    $lastUsePos = $lastMatch[1] + strlen($lastMatch[0]);
+                    $code = substr_replace($code, "\n" . $voterUse, $lastUsePos, 0);
+                }
             }
         }
 

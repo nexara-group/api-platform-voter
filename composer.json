@@ -46,9 +46,31 @@
   },
   "require-dev": {
     "phpunit/phpunit": "^10.5",
+    "phpstan/phpstan": "^1.10",
+    "phpstan/extension-installer": "^1.3",
+    "phpstan/phpstan-symfony": "^1.3",
     "symplify/easy-coding-standard": "^12.3",
     "rector/rector": "^1.2",
     "symfony/maker-bundle": "^1.60",
     "nikic/php-parser": "^5.0"
+  },
+  "scripts": {
+    "test": "phpunit",
+    "phpstan": "phpstan analyse --memory-limit=1G",
+    "ecs": "ecs check",
+    "ecs-fix": "ecs check --fix",
+    "rector": "rector process --dry-run",
+    "rector-fix": "rector process",
+    "qa": [
+      "@phpstan",
+      "@ecs",
+      "@rector",
+      "@test"
+    ]
+  },
+  "config": {
+    "allow-plugins": {
+      "phpstan/extension-installer": true
+    }
   }
 }

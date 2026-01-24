@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Nexara\ApiPlatformVoter\Security\Voter;
 
-use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use LogicException;
 use Nexara\ApiPlatformVoter\Security\VoterRegistry;
 use ReflectionClass;
@@ -16,16 +15,9 @@ abstract class AutoConfiguredCrudVoter extends CrudVoter
 
     private ?VoterRegistry $voterRegistry = null;
 
-    private ?ResourceMetadataCollectionFactoryInterface $metadataFactory = null;
-
     public function setVoterRegistry(VoterRegistry $voterRegistry): void
     {
         $this->voterRegistry = $voterRegistry;
-    }
-
-    public function setMetadataFactory(ResourceMetadataCollectionFactoryInterface $factory): void
-    {
-        $this->metadataFactory = $factory;
     }
 
     protected function supports(string $attribute, mixed $subject): bool
@@ -35,6 +27,17 @@ abstract class AutoConfiguredCrudVoter extends CrudVoter
         }
 
         return parent::supports($attribute, $subject);
+    }
+
+    protected function canCustomOperation(string $operation, mixed $object, mixed $previousObject): bool
+    {
+        $methodName = 'can' . $this->toCamelCase($operation);
+
+        if (method_exists($this, $methodName)) {
+            return $this->{$methodName}($object, $previousObject);
+        }
+
+        return false;
     }
 
     private function autoConfigureFromMetadata(): void
@@ -73,6 +76,10 @@ abstract class AutoConfiguredCrudVoter extends CrudVoter
             return;
         }
 
+        if (! class_exists($resourceClass)) {
+            return;
+        }
+
         $reflection = new ReflectionClass($resourceClass);
         $attributes = $reflection->getAttributes(\Nexara\ApiPlatformVoter\Attribute\ApiResourceVoter::class);
 
@@ -85,8 +92,10 @@ abstract class AutoConfiguredCrudVoter extends CrudVoter
             }
         }
 
-        $ref = new ReflectionClass($resourceClass);
-        $this->prefix = strtolower($ref->getShortName());
+        if (class_exists($resourceClass)) {
+            $ref = new ReflectionClass($resourceClass);
+            $this->prefix = strtolower($ref->getShortName());
+        }
     }
 
     private function discoverCustomOperations(): void
@@ -110,17 +119,6 @@ abstract class AutoConfiguredCrudVoter extends CrudVoter
         }
 
         $this->customOperations = $customOps;
-    }
-
-    protected function canCustomOperation(string $operation, mixed $object, mixed $previousObject): bool
-    {
-        $methodName = 'can' . $this->toCamelCase($operation);
-
-        if (method_exists($this, $methodName)) {
-            return $this->$methodName($object, $previousObject);
-        }
-
-        return false;
     }
 
     private function toCamelCase(string $str): string

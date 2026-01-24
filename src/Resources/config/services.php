@@ -65,7 +65,7 @@ return static function (ContainerConfigurator $container): void {
             param('nexara_api_platform_voter.enabled'),
         ]);
 
-    if (class_exists('Symfony\\Bundle\\MakerBundle\\Maker\\AbstractMaker')) {
+    if (class_exists(\Symfony\Bundle\MakerBundle\Maker\AbstractMaker::class)) {
         $services->set(MakeApiResourceVoter::class)
             ->args([
                 service('api_platform.metadata.resource.metadata_collection_factory'),

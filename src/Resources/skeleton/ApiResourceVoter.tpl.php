@@ -1,8 +1,9 @@
-<?php 
+<?php
 declare(strict_types=1);
 
 // Helper function to convert operation name to camelCase method name
-function toCamelCase(string $str): string {
+function toCamelCase(string $str): string
+{
     // Replace hyphens and underscores with spaces, then capitalize each word
     $str = str_replace(['-', '_'], ' ', $str);
     $str = ucwords($str);
@@ -11,7 +12,7 @@ function toCamelCase(string $str): string {
     return $str;
 }
 
-echo "<?php\n"; 
+echo "<?php\n";
 ?>
 
 namespace <?php echo $namespace; ?>;

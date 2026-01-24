@@ -13,8 +13,14 @@ use Nexara\ApiPlatformVoter\Security\Voter\TargetVoterSubject;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
+/**
+ * @implements ProcessorInterface<mixed, mixed>
+ */
 final class SecurityProcessor implements ProcessorInterface
 {
+    /**
+     * @param ProcessorInterface<mixed, mixed> $decorated
+     */
     public function __construct(
         private readonly ProcessorInterface $decorated,
         private readonly OperationToVoterAttributeMapperInterface $mapper,

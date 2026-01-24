@@ -9,8 +9,10 @@ use Nexara\ApiPlatformVoter\Security\VoterRegistry;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ReflectionClass;
+use SplFileInfo;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 
 final class VoterRegistryCompilerPass implements CompilerPassInterface
 {
@@ -36,13 +38,16 @@ final class VoterRegistryCompilerPass implements CompilerPassInterface
         $this->scanDirectory($srcDir, $registry);
     }
 
-    private function scanDirectory(string $dir, $registry): void
+    private function scanDirectory(string $dir, Definition $registry): void
     {
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS)
         );
 
         foreach ($iterator as $file) {
+            if (! $file instanceof SplFileInfo) {
+                continue;
+            }
             if ($file->getExtension() !== 'php') {
                 continue;
             }
@@ -51,7 +56,7 @@ final class VoterRegistryCompilerPass implements CompilerPassInterface
         }
     }
 
-    private function processFile(string $filePath, $registry): void
+    private function processFile(string $filePath, Definition $registry): void
     {
         $content = file_get_contents($filePath);
         if ($content === false) {
@@ -72,11 +77,7 @@ final class VoterRegistryCompilerPass implements CompilerPassInterface
             return;
         }
 
-        try {
-            $reflection = new ReflectionClass($className);
-        } catch (\ReflectionException $e) {
-            return;
-        }
+        $reflection = new ReflectionClass($className);
 
         $attributes = $reflection->getAttributes(ApiResourceVoter::class);
 

@@ -33,6 +33,10 @@ final class ResourceAccessMetadataResolver implements ResourceAccessMetadataReso
             }
         }
 
+        if (! class_exists($resourceClass)) {
+            return new ResourceAccessMetadata(false, null, null);
+        }
+
         $ref = new ReflectionClass($resourceClass);
         $attrs = $ref->getAttributes(ApiResourceVoter::class);
 
