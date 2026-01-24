@@ -14,6 +14,7 @@ return static function (RectorConfig $rectorConfig): void {
 
     $rectorConfig->skip([
         __DIR__ . '/vendor',
+        __DIR__ . '/src/Resources/skeleton',
     ]);
 
     $rectorConfig->sets([

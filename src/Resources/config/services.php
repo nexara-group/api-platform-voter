@@ -12,6 +12,7 @@ use Nexara\ApiPlatformVoter\ApiPlatform\Security\SubjectResolver;
 use Nexara\ApiPlatformVoter\ApiPlatform\Security\SubjectResolverInterface;
 use Nexara\ApiPlatformVoter\ApiPlatform\State\SecurityProcessor;
 use Nexara\ApiPlatformVoter\ApiPlatform\State\SecurityProvider;
+use Nexara\ApiPlatformVoter\Maker\MakeApiResourceVoter;
 
 return static function (ContainerConfigurator $container): void {
     $services = $container->services();
@@ -53,4 +54,13 @@ return static function (ContainerConfigurator $container): void {
             service('security.authorization_checker'),
             param('nexara_api_platform_voter.enabled'),
         ]);
+
+    if (class_exists('Symfony\\Bundle\\MakerBundle\\Maker\\AbstractMaker')) {
+        $services->set(MakeApiResourceVoter::class)
+            ->args([
+                service('api_platform.metadata.resource.metadata_collection_factory'),
+                param('kernel.project_dir'),
+            ])
+            ->tag('maker.command');
+    }
 };
