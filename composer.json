@@ -1,7 +1,26 @@
 {
   "name": "nexara/api-platform-voter",
+  "description": "Symfony bundle that enforces voter-based authorization for API Platform 3.",
   "type": "symfony-bundle",
-  "license": "proprietary",
+  "license": "MIT",
+  "keywords": [
+    "symfony",
+    "api-platform",
+    "security",
+    "voter",
+    "bundle"
+  ],
+  "homepage": "https://github.com/nexara-group/api-platform-voter",
+  "support": {
+    "issues": "https://github.com/nexara-group/api-platform-voter/issues",
+    "source": "https://github.com/nexara-group/api-platform-voter"
+  },
+  "authors": [
+    {
+      "name": "Nexara s.r.o.",
+      "homepage": "https://github.com/nexara-group"
+    }
+  ],
   "require": {
     "php": "^8.1",
     "symfony/framework-bundle": "^6.4 || ^7.0",

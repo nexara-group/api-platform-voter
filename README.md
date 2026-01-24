@@ -1,5 +1,8 @@
 # Nexara API Platform Voter
 
+[![Packagist Version](https://img.shields.io/packagist/v/nexara/api-platform-voter.svg)](https://packagist.org/packages/nexara/api-platform-voter)
+[![Packagist Downloads](https://img.shields.io/packagist/dt/nexara/api-platform-voter.svg)](https://packagist.org/packages/nexara/api-platform-voter)
+
 Symfony bundle that enforces a consistent voter-based authorization standard for API Platform 3.
 
 ## Key ideas
