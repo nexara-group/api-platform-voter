@@ -114,12 +114,21 @@ abstract class AutoConfiguredCrudVoter extends CrudVoter
 
     protected function canCustomOperation(string $operation, mixed $object, mixed $previousObject): bool
     {
-        $methodName = 'can' . ucfirst($operation);
+        $methodName = 'can' . $this->toCamelCase($operation);
 
         if (method_exists($this, $methodName)) {
             return $this->$methodName($object, $previousObject);
         }
 
         return false;
+    }
+
+    private function toCamelCase(string $str): string
+    {
+        // Replace hyphens and underscores with spaces, then capitalize each word
+        $str = str_replace(['-', '_'], ' ', $str);
+        $str = ucwords($str);
+        // Remove spaces
+        return str_replace(' ', '', $str);
     }
 }

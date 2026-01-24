@@ -1,5 +1,18 @@
-<?php declare(strict_types=1);
-echo "<?php\n"; ?>
+<?php 
+declare(strict_types=1);
+
+// Helper function to convert operation name to camelCase method name
+function toCamelCase(string $str): string {
+    // Replace hyphens and underscores with spaces, then capitalize each word
+    $str = str_replace(['-', '_'], ' ', $str);
+    $str = ucwords($str);
+    // Remove spaces
+    $str = str_replace(' ', '', $str);
+    return $str;
+}
+
+echo "<?php\n"; 
+?>
 
 namespace <?php echo $namespace; ?>;
 
@@ -34,7 +47,7 @@ final class <?php echo $class_name; ?> extends AutoConfiguredCrudVoter
 <?php if ($custom_operations !== []) { ?>
 
 <?php foreach ($custom_operations as $op) { ?>
-    protected function can<?php echo ucfirst($op); ?>(mixed $object, mixed $previousObject): bool
+    protected function can<?php echo toCamelCase($op); ?>(mixed $object, mixed $previousObject): bool
     {
         return false;
     }
