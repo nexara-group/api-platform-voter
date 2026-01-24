@@ -93,8 +93,27 @@ final class CustomOperationExtractor
 
     private function operationKey(Operation $operation): ?string
     {
+        // For custom POST operations, prioritize extracting action from uriTemplate
+        // This handles cases where name is auto-generated like "_api_/articles/{id}/publish_post"
+        if ($operation instanceof Post && method_exists($operation, 'getUriTemplate')) {
+            $uriTemplate = $operation->getUriTemplate();
+            if (is_string($uriTemplate) && $uriTemplate !== '') {
+                $path = trim($uriTemplate, '/');
+                $segments = explode('/', $path);
+                
+                // Check if it's a custom operation pattern: /resource/{id}/action
+                if (count($segments) > 2) {
+                    $last = end($segments);
+                    if (is_string($last) && $last !== '' && $last[0] !== '{') {
+                        return $last; // Return the action (e.g., "publish", "archive")
+                    }
+                }
+            }
+        }
+
+        // For other operations, use name if available and not auto-generated
         $name = $operation->getName();
-        if (is_string($name) && $name !== '') {
+        if (is_string($name) && $name !== '' && !str_starts_with($name, '_api_')) {
             return $name;
         }
 
@@ -105,6 +124,7 @@ final class CustomOperationExtractor
             }
         }
 
+        // Fallback to extracting from uriTemplate for non-POST operations
         if (method_exists($operation, 'getUriTemplate')) {
             $uriTemplate = $operation->getUriTemplate();
             if (is_string($uriTemplate) && $uriTemplate !== '') {
