@@ -9,6 +9,7 @@ use Nexara\ApiPlatformVoter\Maker\Util\CustomOperationExtractor;
 use Nexara\ApiPlatformVoter\Maker\Util\PhpResourceVoterAttributeAdder;
 use Nexara\ApiPlatformVoter\Maker\Util\ResourceClassFinder;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
+use Symfony\Bundle\MakerBundle\DependencyBuilder;
 use Symfony\Bundle\MakerBundle\Generator;
 use Symfony\Bundle\MakerBundle\InputConfiguration;
 use Symfony\Bundle\MakerBundle\Maker\AbstractMaker;
@@ -37,6 +38,10 @@ final class MakeApiResourceVoter extends AbstractMaker
     }
 
     public function configureCommand(Command $command, InputConfiguration $inputConfig): void
+    {
+    }
+
+    public function configureDependencies(DependencyBuilder $dependencies): void
     {
     }
 
