@@ -1,0 +1,17 @@
+/vendor/
+/.phpunit.cache/
+/phpunit.xml.cache
+/.php_cs.cache
+/.php-cs-fixer.cache
+/var/
+
+/.idea/
+/.vscode/
+
+.DS_Store
+
+# ECS cache (if enabled)
+/ecs-cache/
+
+# Rector cache (if enabled)
+/rector-cache/
