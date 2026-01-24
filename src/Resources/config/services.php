@@ -33,7 +33,7 @@ return static function (ContainerConfigurator $container): void {
     $services->alias(ResourceAccessMetadataResolverInterface::class, ResourceAccessMetadataResolver::class);
 
     $services->set(SecurityProvider::class)
-        ->decorate('api_platform.state_provider')
+        ->decorate('api_platform.state_provider.main')
         ->args([
             service('.inner'),
             service(OperationToVoterAttributeMapperInterface::class),
@@ -44,7 +44,7 @@ return static function (ContainerConfigurator $container): void {
         ]);
 
     $services->set(SecurityProcessor::class)
-        ->decorate('api_platform.state_processor')
+        ->decorate('api_platform.state_processor.main')
         ->args([
             service('.inner'),
             service(OperationToVoterAttributeMapperInterface::class),
