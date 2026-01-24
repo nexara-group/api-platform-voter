@@ -41,11 +41,44 @@ final class OperationToVoterAttributeMapper implements OperationToVoterAttribute
             return $prefix . ':delete';
         }
 
-        $name = $operation->getName();
-        if (! is_string($name) || $name === '') {
+        $operationKey = $operation->getName();
+        if (! is_string($operationKey) || $operationKey === '') {
+            $operationKey = $this->fallbackOperationKey($operation);
+        }
+
+        if (! is_string($operationKey) || $operationKey === '') {
             return null;
         }
 
-        return $prefix . ':' . $name;
+        return $prefix . ':' . $operationKey;
+    }
+
+    private function fallbackOperationKey(Operation $operation): ?string
+    {
+        if (method_exists($operation, 'getRouteName')) {
+            $routeName = $operation->getRouteName();
+            if (is_string($routeName) && $routeName !== '') {
+                return $routeName;
+            }
+        }
+
+        if (method_exists($operation, 'getUriTemplate')) {
+            $uriTemplate = $operation->getUriTemplate();
+            if (is_string($uriTemplate) && $uriTemplate !== '') {
+                $path = trim($uriTemplate);
+                $path = trim($path, '/');
+                if ($path === '') {
+                    return null;
+                }
+
+                $segments = explode('/', $path);
+                $last = end($segments);
+                if (is_string($last) && $last !== '' && $last[0] !== '{') {
+                    return $last;
+                }
+            }
+        }
+
+        return null;
     }
 }

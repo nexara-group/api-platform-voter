@@ -54,7 +54,12 @@ final class SecurityProvider implements ProviderInterface
         }
 
         if (! $this->authorizationChecker->isGranted($attribute, $subject)) {
-            throw new AccessDeniedException();
+            throw new AccessDeniedException(sprintf(
+                'Access denied for attribute "%s" on resource "%s" (operation "%s").',
+                $attribute,
+                $resourceClass,
+                $operation::class,
+            ));
         }
 
         return $data;

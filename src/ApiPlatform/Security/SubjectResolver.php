@@ -21,7 +21,7 @@ final class SubjectResolver implements SubjectResolverInterface
         }
 
         if ($operation instanceof Put || $operation instanceof Patch) {
-            return [$data, $context['previous_data'] ?? null];
+            return [$data, $context['previous_object'] ?? $context['previous_data'] ?? null];
         }
 
         if ($operation instanceof Delete || $operation instanceof Get || $operation instanceof Post) {
