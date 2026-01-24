@@ -10,7 +10,7 @@ final class <?= $class_name ?> extends CrudVoter
 {
     public function __construct()
     {
-        $this->setResourceClasses(\<?= ltrim($resource_class, '\\') ?>::class);
+        $this->setResourceClasses(<?= $resource_class ?>::class);
 
 <?php if ($custom_operations !== []) { ?>
         $this->customOperations = [
