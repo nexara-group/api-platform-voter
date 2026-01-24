@@ -39,14 +39,23 @@ final class CustomOperationExtractor
                     continue;
                 }
 
+                // Skip standard CRUD operations
                 if ($operation instanceof GetCollection
                     || $operation instanceof Get
-                    || $operation instanceof Post
                     || $operation instanceof Put
                     || $operation instanceof Patch
                     || $operation instanceof Delete
                 ) {
                     continue;
+                }
+
+                // For Post operations, check if it's a standard create or custom operation
+                if ($operation instanceof Post) {
+                    $name = $operation->getName();
+                    // Standard POST create has no name or name like "_api_/articles_post"
+                    if ($name === null || $name === '' || str_starts_with($name, '_api_')) {
+                        continue;
+                    }
                 }
 
                 $key = $this->operationKey($operation);

@@ -13,9 +13,16 @@ use Nexara\ApiPlatformVoter\ApiPlatform\Security\SubjectResolverInterface;
 use Nexara\ApiPlatformVoter\ApiPlatform\State\SecurityProcessor;
 use Nexara\ApiPlatformVoter\ApiPlatform\State\SecurityProvider;
 use Nexara\ApiPlatformVoter\Maker\MakeApiResourceVoter;
+use Nexara\ApiPlatformVoter\Security\Voter\AutoConfiguredCrudVoter;
+use Nexara\ApiPlatformVoter\Security\VoterRegistry;
 
 return static function (ContainerConfigurator $container): void {
     $services = $container->services();
+
+    // Auto-configure AutoConfiguredCrudVoter instances
+    $services->instanceof(AutoConfiguredCrudVoter::class)
+        ->call('setVoterRegistry', [service(VoterRegistry::class)])
+        ->call('setMetadataFactory', [service('api_platform.metadata.resource.metadata_collection_factory')]);
 
     $services->set(OperationToVoterAttributeMapper::class)
         ->args([
@@ -23,6 +30,9 @@ return static function (ContainerConfigurator $container): void {
         ]);
 
     $services->alias(OperationToVoterAttributeMapperInterface::class, OperationToVoterAttributeMapper::class);
+
+    $services->set(VoterRegistry::class)
+        ->public();
 
     $services->set(SubjectResolver::class);
     $services->alias(SubjectResolverInterface::class, SubjectResolver::class);
