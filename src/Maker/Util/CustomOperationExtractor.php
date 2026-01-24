@@ -51,10 +51,28 @@ final class CustomOperationExtractor
 
                 // For Post operations, check if it's a standard create or custom operation
                 if ($operation instanceof Post) {
-                    $name = $operation->getName();
-                    // Standard POST create has no name or name like "_api_/articles_post"
-                    if ($name === null || $name === '' || str_starts_with($name, '_api_')) {
-                        continue;
+                    // Check if it's a custom operation by looking at uriTemplate
+                    // Standard POST create has uriTemplate like "/articles" (collection endpoint)
+                    // Custom POST has uriTemplate like "/articles/{id}/publish" (item endpoint with action)
+                    $uriTemplate = method_exists($operation, 'getUriTemplate') ? $operation->getUriTemplate() : null;
+                    
+                    if ($uriTemplate !== null && is_string($uriTemplate)) {
+                        // If uriTemplate contains {id} or similar placeholder followed by an action, it's custom
+                        // Example: /articles/{id}/publish, /articles/{id}/archive
+                        $hasItemPlaceholder = preg_match('/\{[^}]+\}/', $uriTemplate);
+                        $pathSegments = explode('/', trim($uriTemplate, '/'));
+                        $hasActionAfterPlaceholder = count($pathSegments) > 2 && $hasItemPlaceholder;
+                        
+                        if (!$hasActionAfterPlaceholder) {
+                            // It's a standard collection POST (create)
+                            continue;
+                        }
+                    } else {
+                        // No uriTemplate or not a string - check name as fallback
+                        $name = $operation->getName();
+                        if ($name === null || $name === '' || str_starts_with($name, '_api_')) {
+                            continue;
+                        }
                     }
                 }
 
