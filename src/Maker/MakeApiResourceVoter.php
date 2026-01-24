@@ -97,14 +97,18 @@ final class MakeApiResourceVoter extends AbstractMaker
             ],
         );
 
+        $generator->writeChanges();
+
         (new PhpResourceVoterAttributeAdder())->addToResourceClass(
             $resourceClass,
             $voterFqcn,
             $prefix,
         );
 
-        $generator->writeChanges();
-
-        $io->success('API Resource voter generated.');
+        $io->success(sprintf(
+            'Voter "%s" generated and #[ApiResourceVoter] attribute added to %s.',
+            $voterClassName,
+            $resourceClass,
+        ));
     }
 }
