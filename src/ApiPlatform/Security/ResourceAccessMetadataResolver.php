@@ -8,6 +8,11 @@ use Nexara\ApiPlatformVoter\Attribute\ApiResourceVoter;
 use Psr\Cache\CacheItemPoolInterface;
 use ReflectionClass;
 
+/**
+ * Resolves resource access metadata from ApiResourceVoter attributes.
+ *
+ * @internal
+ */
 final class ResourceAccessMetadataResolver implements ResourceAccessMetadataResolverInterface
 {
     public function __construct(

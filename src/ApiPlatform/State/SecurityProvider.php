@@ -14,6 +14,9 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
+ * Security provider that enforces voter-based authorization for API Platform operations.
+ *
+ * @internal
  * @implements ProviderInterface<object|array|null>
  */
 final class SecurityProvider implements ProviderInterface

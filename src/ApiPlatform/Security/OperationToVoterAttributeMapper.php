@@ -12,6 +12,19 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 
+/**
+ * Maps API Platform operations to voter attributes.
+ *
+ * Mapping rules:
+ * - GetCollection -> {prefix}:list
+ * - Get -> {prefix}:read
+ * - Post -> {prefix}:create
+ * - Put/Patch -> {prefix}:update
+ * - Delete -> {prefix}:delete
+ * - Custom operations -> {prefix}:{operationName}
+ *
+ * @internal
+ */
 final class OperationToVoterAttributeMapper implements OperationToVoterAttributeMapperInterface
 {
     public function __construct(

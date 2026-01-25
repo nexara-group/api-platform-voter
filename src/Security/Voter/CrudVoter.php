@@ -10,6 +10,39 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
+/**
+ * Base voter for API Platform CRUD operations.
+ *
+ * Provides automatic mapping of CRUD operations to voter methods:
+ * - GET collection -> canList()
+ * - POST collection -> canCreate($object)
+ * - GET item -> canRead($object)
+ * - PUT/PATCH item -> canUpdate($object, $previousObject)
+ * - DELETE item -> canDelete($object)
+ * - Custom operations -> canCustomOperation($operation, $object, $previousObject)
+ *
+ * Example usage:
+ * ```php
+ * final class ArticleVoter extends CrudVoter
+ * {
+ *     public function __construct(private readonly Security $security)
+ *     {
+ *         $this->setPrefix('article');
+ *         $this->setResourceClasses(Article::class);
+ *     }
+ *
+ *     protected function canRead(mixed $object): bool
+ *     {
+ *         return true; // Everyone can read
+ *     }
+ *
+ *     protected function canUpdate(mixed $object, mixed $previousObject): bool
+ *     {
+ *         return $object->getAuthor() === $this->security->getUser();
+ *     }
+ * }
+ * ```
+ */
 abstract class CrudVoter extends Voter
 {
     protected const LIST = 'list';

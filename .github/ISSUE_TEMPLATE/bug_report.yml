@@ -1,0 +1,103 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the form below.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: When I try to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Configure voter with...
+        2. Make request to...
+        3. See error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen
+      placeholder: The voter should grant access...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened
+      placeholder: Access was denied with error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Code Sample
+      description: Minimal code to reproduce the issue
+      render: php
+      placeholder: |
+        final class ArticleVoter extends CrudVoter
+        {
+            // Your voter code
+        }
+
+  - type: input
+    id: bundle-version
+    attributes:
+      label: Bundle Version
+      description: Which version of nexara/api-platform-voter are you using?
+      placeholder: "0.1.9"
+    validations:
+      required: true
+
+  - type: input
+    id: php-version
+    attributes:
+      label: PHP Version
+      description: Which PHP version are you using?
+      placeholder: "8.3.0"
+    validations:
+      required: true
+
+  - type: input
+    id: symfony-version
+    attributes:
+      label: Symfony Version
+      description: Which Symfony version are you using?
+      placeholder: "7.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: api-platform-version
+    attributes:
+      label: API Platform Version
+      description: Which API Platform version are you using?
+      placeholder: "3.2.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context about the problem
+      placeholder: This happens only when...

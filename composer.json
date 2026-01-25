@@ -54,6 +54,12 @@
     "symfony/maker-bundle": "^1.60",
     "nikic/php-parser": "^5.0"
   },
+  "suggest": {
+    "symfony/maker-bundle": "For generating voter classes with make:api-resource-voter command",
+    "symfony/monolog-bundle": "For logging authorization decisions and audit trails",
+    "symfony/rate-limiter": "For implementing rate limiting on authorization checks",
+    "doctrine/orm": "For entity-based authorization with Doctrine entities"
+  },
   "scripts": {
     "test": "phpunit",
     "phpstan": "phpstan analyse --memory-limit=1G",
