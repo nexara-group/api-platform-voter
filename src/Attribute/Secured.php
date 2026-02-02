@@ -7,7 +7,7 @@ namespace Nexara\ApiPlatformVoter\Attribute;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_CLASS)]
-final class ApiResourceVoter
+final class Secured
 {
     public function __construct(
         public readonly ?string $prefix = null,

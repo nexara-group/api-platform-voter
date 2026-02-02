@@ -2,19 +2,28 @@
 
 declare(strict_types=1);
 
-namespace Nexara\ApiPlatformVoter\ApiPlatform\State;
+namespace Nexara\ApiPlatformVoter\Provider;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Nexara\ApiPlatformVoter\ApiPlatform\Security\OperationToVoterAttributeMapperInterface;
-use Nexara\ApiPlatformVoter\ApiPlatform\Security\ResourceAccessMetadataResolverInterface;
+use Nexara\ApiPlatformVoter\Metadata\ResourceAccessMetadataResolverInterface;
 use Nexara\ApiPlatformVoter\ApiPlatform\Security\SubjectResolverInterface;
-use Nexara\ApiPlatformVoter\Security\Voter\TargetVoterSubject;
+use Nexara\ApiPlatformVoter\Voter\TargetVoterSubject;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
-final class SecurityProvider implements ProviderInterface
+/**
+ * Decorator for custom providers to add security checks.
+ *
+ * @internal
+ * @implements ProviderInterface<object|array|null>
+ */
+final class CustomProviderDecorator implements ProviderInterface
 {
+    /**
+     * @param ProviderInterface<object|array|null> $decorated
+     */
     public function __construct(
         private readonly ProviderInterface $decorated,
         private readonly OperationToVoterAttributeMapperInterface $mapper,

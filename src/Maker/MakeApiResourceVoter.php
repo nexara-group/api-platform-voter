@@ -32,7 +32,7 @@ final class MakeApiResourceVoter extends AbstractMaker
 
     public static function getCommandDescription(): string
     {
-        return 'Generate a CrudVoter for an API Platform ApiResource and add #[ApiResourceVoter] attribute to the resource.';
+        return 'Generate a CrudVoter for an API Platform ApiResource and add #[Secured] attribute to the resource.';
     }
 
     public function configureCommand(Command $command, InputConfiguration $inputConfig): void
@@ -82,6 +82,11 @@ final class MakeApiResourceVoter extends AbstractMaker
             $resourceClass,
         );
 
+        // Interactive custom operations
+        if ($io->confirm('Do you want to add more custom operations interactively?', false)) {
+            $customOps = $this->addInteractiveCustomOperations($io, $customOps);
+        }
+
         $generator->generateClass(
             $voterFqcn,
             __DIR__ . '/../Resources/skeleton/ApiResourceVoter.tpl.php',
@@ -99,10 +104,99 @@ final class MakeApiResourceVoter extends AbstractMaker
             $prefix,
         );
 
+        // Generate tests
+        if ($io->confirm('Generate tests for this voter?', true)) {
+            $this->generateVoterTests($generator, $voterClassName, $resourceClass, $customOps);
+        }
+
+        // Generate processors for custom operations
+        if ($customOps !== [] && $io->confirm('Generate processor classes for custom operations?', false)) {
+            $this->generateProcessors($generator, $io, $resourceClass, $customOps);
+        }
+
         $io->success(sprintf(
-            'Voter "%s" generated and #[ApiResourceVoter] attribute added to %s.',
+            'Voter "%s" generated and #[Secured] attribute added to %s.',
             $voterClassName,
             $resourceClass,
         ));
+    }
+
+    private function addInteractiveCustomOperations(ConsoleStyle $io, array $existingOps): array
+    {
+        $operations = $existingOps;
+
+        while (true) {
+            $operationName = $io->ask('Enter custom operation name (or press Enter to finish)', null);
+
+            if ($operationName === null || $operationName === '') {
+                break;
+            }
+
+            if (! in_array($operationName, $operations, true)) {
+                $operations[] = $operationName;
+                $io->success("Added custom operation: {$operationName}");
+            } else {
+                $io->note("Operation {$operationName} already exists");
+            }
+        }
+
+        return $operations;
+    }
+
+    private function generateVoterTests(
+        Generator $generator,
+        string $voterClassName,
+        string $resourceClass,
+        array $customOps
+    ): void {
+        $testClassName = $voterClassName . 'Test';
+        $testFqcn = 'App\\Tests\\Security\\Voter\\' . $testClassName;
+
+        $generator->generateClass(
+            $testFqcn,
+            __DIR__ . '/../Resources/skeleton/VoterTest.tpl.php',
+            [
+                'voter_class' => 'App\\Security\\Voter\\' . $voterClassName,
+                'resource_class' => $resourceClass,
+                'custom_operations' => $customOps,
+            ],
+        );
+
+        $generator->writeChanges();
+    }
+
+    private function generateProcessors(
+        Generator $generator,
+        ConsoleStyle $io,
+        string $resourceClass,
+        array $customOps
+    ): void {
+        $resourceShort = Str::getShortClassName($resourceClass);
+
+        foreach ($customOps as $operation) {
+            $processorName = $resourceShort . ucfirst($this->toCamelCase($operation)) . 'Processor';
+            $processorFqcn = 'App\\State\\Processor\\' . $processorName;
+
+            $generator->generateClass(
+                $processorFqcn,
+                __DIR__ . '/../Resources/skeleton/CustomOperationProcessor.tpl.php',
+                [
+                    'resource_class' => $resourceClass,
+                    'operation_name' => $operation,
+                ],
+            );
+
+            $io->text("Generated processor: {$processorName}");
+        }
+
+        $generator->writeChanges();
+    }
+
+    private function toCamelCase(string $str): string
+    {
+        $str = str_replace(['-', '_'], ' ', $str);
+        $str = ucwords($str);
+
+        return str_replace(' ', '', $str);
     }
 }

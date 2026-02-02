@@ -2,19 +2,28 @@
 
 declare(strict_types=1);
 
-namespace Nexara\ApiPlatformVoter\ApiPlatform\State;
+namespace Nexara\ApiPlatformVoter\Processor;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use Nexara\ApiPlatformVoter\ApiPlatform\Security\OperationToVoterAttributeMapperInterface;
-use Nexara\ApiPlatformVoter\ApiPlatform\Security\ResourceAccessMetadataResolverInterface;
+use Nexara\ApiPlatformVoter\Metadata\ResourceAccessMetadataResolverInterface;
 use Nexara\ApiPlatformVoter\ApiPlatform\Security\SubjectResolverInterface;
-use Nexara\ApiPlatformVoter\Security\Voter\TargetVoterSubject;
+use Nexara\ApiPlatformVoter\Voter\TargetVoterSubject;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
+/**
+ * Security processor that enforces voter-based authorization for API Platform operations.
+ *
+ * @internal
+ * @implements ProcessorInterface<mixed, mixed>
+ */
 final class SecurityProcessor implements ProcessorInterface
 {
+    /**
+     * @param ProcessorInterface<mixed, mixed> $decorated
+     */
     public function __construct(
         private readonly ProcessorInterface $decorated,
         private readonly OperationToVoterAttributeMapperInterface $mapper,

@@ -1,26 +1,26 @@
 <?php
-
 declare(strict_types=1);
 
-namespace <?= $namespace ?>;
-
-use Nexara\ApiPlatformVoter\Security\Voter\CrudVoter;
-
-final class <?= $class_name ?> extends CrudVoter
+// Helper function to convert operation name to camelCase method name
+function toCamelCase(string $str): string
 {
-    public function __construct()
-    {
-        $this->setResourceClasses(<?= $resource_class ?>::class);
+    // Replace hyphens and underscores with spaces, then capitalize each word
+    $str = str_replace(['-', '_'], ' ', $str);
+    $str = ucwords($str);
+    // Remove spaces
+    $str = str_replace(' ', '', $str);
+    return $str;
+}
 
-<?php if ($custom_operations !== []) { ?>
-        $this->customOperations = [
-<?php foreach ($custom_operations as $op) { ?>
-            '<?= $op ?>',
-<?php } ?>
-        ];
-<?php } ?>
-    }
+echo "<?php\n";
+?>
 
+namespace <?php echo $namespace; ?>;
+
+use Nexara\ApiPlatformVoter\Security\Voter\AutoConfiguredCrudVoter;
+
+final class <?php echo $class_name; ?> extends AutoConfiguredCrudVoter
+{
     protected function canList(): bool
     {
         return true;
@@ -45,18 +45,14 @@ final class <?= $class_name ?> extends CrudVoter
     {
         return true;
     }
+<?php if ($custom_operations !== []) { ?>
 
-    protected function canCustomOperation(string $operation, mixed $object, mixed $previousObject): bool
-    {
-<?php if ($custom_operations === []) { ?>
-        return false;
-<?php } else { ?>
-        return match ($operation) {
 <?php foreach ($custom_operations as $op) { ?>
-            '<?= $op ?>' => false,
-<?php } ?>
-            default => false,
-        };
-<?php } ?>
+    protected function can<?php echo toCamelCase($op); ?>(mixed $object, mixed $previousObject): bool
+    {
+        return false;
     }
+
+<?php } ?>
+<?php } ?>
 }

@@ -12,6 +12,19 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 
+/**
+ * Maps API Platform operations to voter attributes.
+ *
+ * Mapping rules:
+ * - GetCollection -> {prefix}:list
+ * - Get -> {prefix}:read
+ * - Post -> {prefix}:create
+ * - Put/Patch -> {prefix}:update
+ * - Delete -> {prefix}:delete
+ * - Custom operations -> {prefix}:{operationName}
+ *
+ * @internal
+ */
 final class OperationToVoterAttributeMapper implements OperationToVoterAttributeMapperInterface
 {
     public function __construct(
@@ -21,6 +34,16 @@ final class OperationToVoterAttributeMapper implements OperationToVoterAttribute
 
     public function map(Operation $operation, string $prefix): ?string
     {
+        // Check for custom operation name first (before default CRUD mapping)
+        $operationKey = $operation->getName();
+        if (is_string($operationKey) && $operationKey !== '') {
+            // If operation has a custom name that doesn't start with _api_, it's a custom operation
+            if (! str_starts_with($operationKey, '_api_')) {
+                return $prefix . ':' . $operationKey;
+            }
+        }
+
+        // Default CRUD mapping
         if ($operation instanceof GetCollection) {
             return $this->enforceCollectionList ? $prefix . ':list' : null;
         }
@@ -41,7 +64,7 @@ final class OperationToVoterAttributeMapper implements OperationToVoterAttribute
             return $prefix . ':delete';
         }
 
-        $operationKey = $operation->getName();
+        // Fallback for operations without explicit name
         if (! is_string($operationKey) || $operationKey === '') {
             $operationKey = $this->fallbackOperationKey($operation);
         }

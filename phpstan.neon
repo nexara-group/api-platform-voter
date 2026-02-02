@@ -1,0 +1,15 @@
+includes:
+    - phpstan-baseline.neon
+
+parameters:
+    level: 9
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - vendor
+        - src/Resources/skeleton
+    tmpDir: var/phpstan
+    checkMissingIterableValueType: true
+    checkGenericClassInNonGenericObjectType: true
+    reportUnmatchedIgnoredErrors: false

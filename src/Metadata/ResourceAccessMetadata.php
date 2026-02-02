@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Nexara\ApiPlatformVoter\ApiPlatform\Security;
+namespace Nexara\ApiPlatformVoter\Metadata;
 
 final class ResourceAccessMetadata
 {

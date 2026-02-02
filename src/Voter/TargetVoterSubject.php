@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Nexara\ApiPlatformVoter\Security\Voter;
+namespace Nexara\ApiPlatformVoter\Voter;
 
 final class TargetVoterSubject
 {

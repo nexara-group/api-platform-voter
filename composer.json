@@ -46,9 +46,37 @@
   },
   "require-dev": {
     "phpunit/phpunit": "^10.5",
+    "phpstan/phpstan": "^1.10",
+    "phpstan/extension-installer": "^1.3",
+    "phpstan/phpstan-symfony": "^1.3",
     "symplify/easy-coding-standard": "^12.3",
     "rector/rector": "^1.2",
     "symfony/maker-bundle": "^1.60",
     "nikic/php-parser": "^5.0"
+  },
+  "suggest": {
+    "symfony/maker-bundle": "For generating voter classes with make:api-resource-voter command",
+    "symfony/monolog-bundle": "For logging authorization decisions and audit trails",
+    "symfony/rate-limiter": "For implementing rate limiting on authorization checks",
+    "doctrine/orm": "For entity-based authorization with Doctrine entities"
+  },
+  "scripts": {
+    "test": "phpunit",
+    "phpstan": "phpstan analyse --memory-limit=1G",
+    "ecs": "ecs check",
+    "ecs-fix": "ecs check --fix",
+    "rector": "rector process --dry-run",
+    "rector-fix": "rector process",
+    "qa": [
+      "@phpstan",
+      "@ecs",
+      "@rector",
+      "@test"
+    ]
+  },
+  "config": {
+    "allow-plugins": {
+      "phpstan/extension-installer": true
+    }
   }
 }

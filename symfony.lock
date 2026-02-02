@@ -1,0 +1,11 @@
+{
+    "nexara/api-platform-voter": {
+        "version": "0.2",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "0.2",
+            "ref": "1234567890abcdef"
+        }
+    }
+}
