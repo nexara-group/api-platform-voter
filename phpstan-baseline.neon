@@ -1,0 +1,12 @@
+parameters:
+    ignoreErrors:
+        # Symfony Configuration fluent API false positive
+        - '#Call to method booleanNode\(\) on an unknown class Symfony\\Component\\Config\\Definition\\Builder\\NodeBuilder#'
+        - '#Call to method enumNode\(\) on an unknown class Symfony\\Component\\Config\\Definition\\Builder\\NodeBuilder#'
+        - '#Call to method arrayNode\(\) on an unknown class Symfony\\Component\\Config\\Definition\\Builder\\NodeBuilder#'
+        
+        # API Platform generic type variance
+        - '#Type array\|object\|null in generic type .+ is not subtype of template type T of object#'
+        
+        # Iterator to array conversion
+        - '#Parameter \#1 \$array of function usort expects array, array\|Traversable given#'

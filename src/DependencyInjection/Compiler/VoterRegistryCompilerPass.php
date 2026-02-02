@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Nexara\ApiPlatformVoter\DependencyInjection\Compiler;
 
-use Nexara\ApiPlatformVoter\Attribute\ApiResourceVoter;
+use Nexara\ApiPlatformVoter\Attribute\Secured;
 use Nexara\ApiPlatformVoter\Security\VoterRegistry;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -79,7 +79,7 @@ final class VoterRegistryCompilerPass implements CompilerPassInterface
 
         $reflection = new ReflectionClass($className);
 
-        $attributes = $reflection->getAttributes(ApiResourceVoter::class);
+        $attributes = $reflection->getAttributes(Secured::class);
 
         if ($attributes === []) {
             return;

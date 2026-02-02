@@ -6,14 +6,14 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Nexara\ApiPlatformVoter\ApiPlatform\Security\OperationToVoterAttributeMapper;
 use Nexara\ApiPlatformVoter\ApiPlatform\Security\OperationToVoterAttributeMapperInterface;
-use Nexara\ApiPlatformVoter\ApiPlatform\Security\ResourceAccessMetadataResolver;
-use Nexara\ApiPlatformVoter\ApiPlatform\Security\ResourceAccessMetadataResolverInterface;
+use Nexara\ApiPlatformVoter\Metadata\ResourceAccessMetadataResolver;
+use Nexara\ApiPlatformVoter\Metadata\ResourceAccessMetadataResolverInterface;
 use Nexara\ApiPlatformVoter\ApiPlatform\Security\SubjectResolver;
 use Nexara\ApiPlatformVoter\ApiPlatform\Security\SubjectResolverInterface;
-use Nexara\ApiPlatformVoter\ApiPlatform\State\SecurityProcessor;
-use Nexara\ApiPlatformVoter\ApiPlatform\State\SecurityProvider;
+use Nexara\ApiPlatformVoter\Processor\SecurityProcessor;
+use Nexara\ApiPlatformVoter\Provider\SecurityProvider;
 use Nexara\ApiPlatformVoter\Maker\MakeApiResourceVoter;
-use Nexara\ApiPlatformVoter\Security\Voter\AutoConfiguredCrudVoter;
+use Nexara\ApiPlatformVoter\Voter\AutoConfiguredCrudVoter;
 use Nexara\ApiPlatformVoter\Security\VoterRegistry;
 
 return static function (ContainerConfigurator $container): void {
@@ -21,8 +21,7 @@ return static function (ContainerConfigurator $container): void {
 
     // Auto-configure AutoConfiguredCrudVoter instances
     $services->instanceof(AutoConfiguredCrudVoter::class)
-        ->call('setVoterRegistry', [service(VoterRegistry::class)])
-        ->call('setMetadataFactory', [service('api_platform.metadata.resource.metadata_collection_factory')]);
+        ->call('setVoterRegistry', [service(VoterRegistry::class)]);
 
     $services->set(OperationToVoterAttributeMapper::class)
         ->args([

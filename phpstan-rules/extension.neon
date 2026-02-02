@@ -1,0 +1,5 @@
+services:
+    -
+        class: Nexara\ApiPlatformVoter\PHPStan\Rules\VoterMethodSignatureRule
+        tags:
+            - phpstan.rules.rule

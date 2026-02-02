@@ -11,9 +11,23 @@ final class VoterRegistry
      */
     private array $voterToResourceMap = [];
 
+    private bool $locked = false;
+
     public function register(string $voterClass, string $resourceClass): void
     {
+        if ($this->locked) {
+            throw new \LogicException(
+                'Cannot register voters after registry has been locked. ' .
+                'Voters should be registered during container compilation.'
+            );
+        }
+
         $this->voterToResourceMap[$voterClass] = $resourceClass;
+    }
+
+    public function lock(): void
+    {
+        $this->locked = true;
     }
 
     public function getResourceClass(string $voterClass): ?string

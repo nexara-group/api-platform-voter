@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Nexara\ApiPlatformVoter\Maker\Util;
 
-use Nexara\ApiPlatformVoter\Attribute\ApiResourceVoter;
+use Nexara\ApiPlatformVoter\Attribute\Secured;
 use ReflectionClass;
 
 final class PhpResourceVoterAttributeAdder
@@ -27,7 +27,7 @@ final class PhpResourceVoterAttributeAdder
         }
 
         // Check if attribute already exists
-        if ($this->hasApiResourceVoterAttribute($code)) {
+        if ($this->hasSecuredAttribute($code)) {
             return;
         }
 
@@ -40,22 +40,22 @@ final class PhpResourceVoterAttributeAdder
         file_put_contents($file, $code);
     }
 
-    private function hasApiResourceVoterAttribute(string $code): bool
+    private function hasSecuredAttribute(string $code): bool
     {
-        return preg_match('/#\[ApiResourceVoter\s*\(/i', $code) === 1;
+        return preg_match('/#\[Secured\s*\(/i', $code) === 1;
     }
 
     private function addUseStatements(string $code, string $voterFqcn): string
     {
-        $apiResourceVoterUse = 'use ' . ApiResourceVoter::class . ';';
+        $securedUse = 'use ' . Secured::class . ';';
         $voterUse = 'use ' . $voterFqcn . ';';
 
-        // Check if ApiResourceVoter use already exists
-        if (! str_contains($code, $apiResourceVoterUse)) {
+        // Check if Secured use already exists
+        if (! str_contains($code, $securedUse)) {
             // Find the last use statement
             if (preg_match('/^use\s+[^;]+;/m', $code, $matches, PREG_OFFSET_CAPTURE)) {
                 $lastUsePos = $matches[0][1] + strlen($matches[0][0]);
-                $code = substr_replace($code, "\n" . $apiResourceVoterUse, $lastUsePos, 0);
+                $code = substr_replace($code, "\n" . $securedUse, $lastUsePos, 0);
             }
         }
 
@@ -81,9 +81,9 @@ final class PhpResourceVoterAttributeAdder
 
         // Build attribute string
         if ($prefix !== null && $prefix !== '') {
-            $attributeString = "#[ApiResourceVoter(voter: {$voterShortName}::class, prefix: '{$prefix}')]";
+            $attributeString = "#[Secured(voter: {$voterShortName}::class, prefix: '{$prefix}')]";
         } else {
-            $attributeString = "#[ApiResourceVoter(voter: {$voterShortName}::class)]";
+            $attributeString = "#[Secured(voter: {$voterShortName}::class)]";
         }
 
         // Find the class declaration and add attribute before it

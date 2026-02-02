@@ -74,4 +74,88 @@ class AuthorizationException extends AccessDeniedException
             ]
         );
     }
+
+    public static function insufficientRole(
+        string $attribute,
+        string $requiredRole,
+        array $userRoles = [],
+        ?string $suggestion = null
+    ): self {
+        $message = sprintf(
+            'Insufficient permissions for "%s". Required role: %s',
+            $attribute,
+            $requiredRole
+        );
+
+        return new self(
+            message: $message,
+            errorCode: 'INSUFFICIENT_ROLE',
+            context: [
+                'attribute' => $attribute,
+                'required_role' => $requiredRole,
+                'user_roles' => $userRoles,
+                'suggestion' => $suggestion ?? sprintf('You need %s role to perform this action.', $requiredRole),
+            ]
+        );
+    }
+
+    public static function notOwner(
+        string $attribute,
+        string $resourceClass,
+        mixed $resourceId = null,
+        ?string $userId = null
+    ): self {
+        $message = sprintf(
+            'You are not the owner of this %s and cannot perform "%s" operation.',
+            $resourceClass,
+            $attribute
+        );
+
+        return new self(
+            message: $message,
+            errorCode: 'NOT_OWNER',
+            context: [
+                'attribute' => $attribute,
+                'resource_class' => $resourceClass,
+                'resource_id' => $resourceId,
+                'user_id' => $userId,
+                'suggestion' => 'Only the resource owner can perform this action.',
+            ]
+        );
+    }
+
+    public static function contextRestriction(
+        string $attribute,
+        string $restriction,
+        array $context = []
+    ): self {
+        $message = sprintf(
+            'Access denied for "%s" due to context restriction: %s',
+            $attribute,
+            $restriction
+        );
+
+        return new self(
+            message: $message,
+            errorCode: 'CONTEXT_RESTRICTION',
+            context: array_merge([
+                'attribute' => $attribute,
+                'restriction' => $restriction,
+            ], $context)
+        );
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'error' => $this->errorCode,
+            'message' => $this->getMessage(),
+            'context' => $this->context,
+        ];
+    }
+
+    public function getSuggestion(): ?string
+    {
+        return $this->context['suggestion'] ?? null;
+    }
 }

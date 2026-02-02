@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Nexara\ApiPlatformVoter\DependencyInjection;
 
-use Nexara\ApiPlatformVoter\Security\Voter\AutoConfiguredCrudVoter;
+use Nexara\ApiPlatformVoter\Voter\AutoConfiguredCrudVoter;
 use Nexara\ApiPlatformVoter\Security\VoterRegistry;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -20,8 +20,7 @@ final class NexaraApiPlatformVoterExtension extends Extension implements Prepend
         // Register autoconfiguration for AutoConfiguredCrudVoter
         // This will apply to all services in the application that extend AutoConfiguredCrudVoter
         $container->registerForAutoconfiguration(AutoConfiguredCrudVoter::class)
-            ->addMethodCall('setVoterRegistry', [new Reference(VoterRegistry::class)])
-            ->addMethodCall('setMetadataFactory', [new Reference('api_platform.metadata.resource.metadata_collection_factory')]);
+            ->addMethodCall('setVoterRegistry', [new Reference(VoterRegistry::class)]);
     }
 
     public function load(array $configs, ContainerBuilder $container): void
