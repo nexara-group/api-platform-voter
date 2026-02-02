@@ -17,7 +17,7 @@ echo "<?php\n";
 
 namespace <?php echo $namespace; ?>;
 
-use Nexara\ApiPlatformVoter\Security\Voter\AutoConfiguredCrudVoter;
+use Nexara\ApiPlatformVoter\Voter\AutoConfiguredCrudVoter;
 
 final class <?php echo $class_name; ?> extends AutoConfiguredCrudVoter
 {
