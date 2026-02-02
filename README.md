@@ -8,7 +8,7 @@ A Symfony bundle that enforces consistent voter-based authorization for API Plat
 
 ## Features
 
-- ✅ **Opt-in security** per resource via `#[ApiResourceVoter]` attribute
+- ✅ **Opt-in security** per resource via `#[Secured]` attribute
 - ✅ **Automatic CRUD mapping** to voter attributes (`{prefix}:list`, `{prefix}:create`, etc.)
 - ✅ **Custom operation support** with explicit voter methods
 - ✅ **UPDATE operations** receive both new and previous objects for comparison
@@ -36,14 +36,14 @@ The bundle will be automatically registered in `config/bundles.php`.
 
 ### 1. Mark Your Resource as Protected
 
-Add the `#[ApiResourceVoter]` attribute to your API Platform resource:
+Add the `#[Secured]` attribute to your API Platform resource:
 
 ```php
 use ApiPlatform\Metadata\ApiResource;
-use Nexara\ApiPlatformVoter\Attribute\ApiResourceVoter;
+use Nexara\ApiPlatformVoter\Attribute\Secured;
 
 #[ApiResource]
-#[ApiResourceVoter(prefix: 'article', voter: ArticleVoter::class)]
+#[Secured(prefix: 'article', voter: ArticleVoter::class)]
 class Article
 {
     // Your entity properties...
@@ -64,7 +64,7 @@ Or create one manually:
 namespace App\Security\Voter;
 
 use App\Entity\Article;
-use Nexara\ApiPlatformVoter\Security\Voter\CrudVoter;
+use Nexara\ApiPlatformVoter\Voter\CrudVoter;
 use Symfony\Bundle\SecurityBundle\Security;
 
 final class ArticleVoter extends CrudVoter
@@ -135,7 +135,7 @@ For custom operations, implement a method following the naming convention `can{O
         ),
     ]
 )]
-#[ApiResourceVoter(voter: ArticleVoter::class)]
+#[Secured(voter: ArticleVoter::class)]
 class Article
 {
     // ...
@@ -161,7 +161,7 @@ final class ArticleVoter extends CrudVoter
 Use `AutoConfiguredCrudVoter` for automatic setup:
 
 ```php
-use Nexara\ApiPlatformVoter\Security\Voter\AutoConfiguredCrudVoter;
+use Nexara\ApiPlatformVoter\Voter\AutoConfiguredCrudVoter;
 
 final class ArticleVoter extends AutoConfiguredCrudVoter
 {
@@ -191,13 +191,13 @@ nexara_api_platform_voter:
 
 ## Attribute Options
 
-### `#[ApiResourceVoter]` Parameters
+### `#[Secured]` Parameters
 
 - **`prefix`** (optional): Custom prefix for voter attributes. Defaults to lowercase resource class name.
 - **`voter`** (optional): Specific voter class to use. When set, only this voter can grant access.
 
 ```php
-#[ApiResourceVoter(
+#[Secured(
     prefix: 'blog_post',
     voter: BlogPostVoter::class
 )]
