@@ -29,18 +29,21 @@ return static function (ContainerConfigurator $container): void {
         ]);
 
     $services->alias(OperationToVoterAttributeMapperInterface::class, OperationToVoterAttributeMapper::class);
+    $services->alias('nexara_api_platform_voter.operation_mapper', OperationToVoterAttributeMapper::class);
 
     $services->set(VoterRegistry::class)
         ->public();
 
     $services->set(SubjectResolver::class);
     $services->alias(SubjectResolverInterface::class, SubjectResolver::class);
+    $services->alias('nexara_api_platform_voter.subject_resolver', SubjectResolver::class);
 
     $services->set(ResourceAccessMetadataResolver::class)
         ->args([
             service('cache.app')->nullOnInvalid(),
         ]);
     $services->alias(ResourceAccessMetadataResolverInterface::class, ResourceAccessMetadataResolver::class);
+    $services->alias('nexara_api_platform_voter.metadata_resolver', ResourceAccessMetadataResolver::class);
 
     $services->set(SecurityProvider::class)
         ->decorate('api_platform.state_provider.main')

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Nexara\ApiPlatformVoter\DependencyInjection\Compiler;
 
-use Nexara\ApiPlatformVoter\ApiPlatform\State\CustomProviderDecorator;
+use Nexara\ApiPlatformVoter\Provider\CustomProviderDecorator;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
