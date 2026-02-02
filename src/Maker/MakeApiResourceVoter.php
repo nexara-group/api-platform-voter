@@ -106,7 +106,7 @@ final class MakeApiResourceVoter extends AbstractMaker
 
         // Generate tests
         if ($io->confirm('Generate tests for this voter?', true)) {
-            $this->generateVoterTests($generator, $voterClassName, $resourceClass, $customOps);
+            $this->generateVoterTests($generator, $voterClassName, $resourceClass, $customOps, $prefix);
         }
 
         // Generate processors for custom operations
@@ -147,18 +147,25 @@ final class MakeApiResourceVoter extends AbstractMaker
         Generator $generator,
         string $voterClassName,
         string $resourceClass,
-        array $customOps
+        array $customOps,
+        ?string $prefix = null
     ): void {
         $testClassName = $voterClassName . 'Test';
         $testFqcn = 'App\\Tests\\Security\\Voter\\' . $testClassName;
+        
+        $resourceShort = Str::getShortClassName($resourceClass);
+        $finalPrefix = $prefix ?? strtolower($resourceShort);
 
         $generator->generateClass(
             $testFqcn,
             __DIR__ . '/../Resources/skeleton/VoterTest.tpl.php',
             [
                 'voter_class' => 'App\\Security\\Voter\\' . $voterClassName,
+                'voter_class_short' => $voterClassName,
                 'resource_class' => $resourceClass,
+                'resource_class_short' => $resourceShort,
                 'custom_operations' => $customOps,
+                'prefix' => $finalPrefix,
             ],
         );
 
