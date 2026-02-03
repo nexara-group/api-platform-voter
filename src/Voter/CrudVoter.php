@@ -170,7 +170,7 @@ abstract class CrudVoter extends Voter
         return false;
     }
 
-    private function supportsSubject(mixed $subject): bool
+    protected function supportsSubject(mixed $subject): bool
     {
         if ($this->resourceClasses === []) {
             throw new LogicException('Set resource classes via setResourceClasses() in constructor.');

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nexara\ApiPlatformVoter\Cache;
 
 use Nexara\ApiPlatformVoter\Attribute\Secured;
+use Nexara\ApiPlatformVoter\Util\PhpClassParser;
 use ReflectionClass;
 use Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerInterface;
 
@@ -53,8 +54,16 @@ final class VoterMetadataWarmer implements CacheWarmerInterface
             new \RecursiveDirectoryIterator($srcDir, \RecursiveDirectoryIterator::SKIP_DOTS)
         );
 
+        $parser = new PhpClassParser();
+
         foreach ($iterator as $file) {
             if (! $file instanceof \SplFileInfo || $file->getExtension() !== 'php') {
+                continue;
+            }
+
+            // Skip vendor, tests, and var directories
+            $path = $file->getPathname();
+            if (str_contains($path, '/vendor/') || str_contains($path, '/tests/') || str_contains($path, '/var/')) {
                 continue;
             }
 
@@ -67,15 +76,12 @@ final class VoterMetadataWarmer implements CacheWarmerInterface
                 continue;
             }
 
-            if (! preg_match('/namespace\s+([^;]+);/', $content, $nsMatch)) {
+            $classInfo = $parser->extractClassInfo($file->getPathname());
+            if ($classInfo === null) {
                 continue;
             }
 
-            if (! preg_match('/class\s+(\w+)/', $content, $classMatch)) {
-                continue;
-            }
-
-            $className = $nsMatch[1] . '\\' . $classMatch[1];
+            $className = $classInfo['fqcn'];
 
             if (class_exists($className)) {
                 $resources[] = $className;

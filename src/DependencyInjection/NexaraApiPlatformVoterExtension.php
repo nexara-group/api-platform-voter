@@ -30,6 +30,12 @@ final class NexaraApiPlatformVoterExtension extends Extension implements Prepend
 
         $container->setParameter('nexara_api_platform_voter.enabled', $config['enabled']);
         $container->setParameter('nexara_api_platform_voter.enforce_collection_list', $config['enforce_collection_list']);
+        $container->setParameter('nexara_api_platform_voter.strict_mode', $config['strict_mode']);
+        $container->setParameter('nexara_api_platform_voter.debug', $config['debug']);
+        $container->setParameter('nexara_api_platform_voter.debug_output', $config['debug_output']);
+        $container->setParameter('nexara_api_platform_voter.audit_enabled', $config['audit']['enabled']);
+        $container->setParameter('nexara_api_platform_voter.audit_level', $config['audit']['level']);
+        $container->setParameter('nexara_api_platform_voter.audit_include_context', $config['audit']['include_context']);
 
         $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.php');

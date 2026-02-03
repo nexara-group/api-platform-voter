@@ -15,6 +15,9 @@ use Nexara\ApiPlatformVoter\Provider\SecurityProvider;
 use Nexara\ApiPlatformVoter\Maker\MakeApiResourceVoter;
 use Nexara\ApiPlatformVoter\Voter\AutoConfiguredCrudVoter;
 use Nexara\ApiPlatformVoter\Security\VoterRegistry;
+use Nexara\ApiPlatformVoter\Debug\VoterDebugger;
+use Nexara\ApiPlatformVoter\Audit\AuditLogger;
+use Nexara\ApiPlatformVoter\Audit\AuditLoggerInterface;
 
 return static function (ContainerConfigurator $container): void {
     $services = $container->services();
@@ -33,6 +36,25 @@ return static function (ContainerConfigurator $container): void {
 
     $services->set(VoterRegistry::class)
         ->public();
+
+    $services->set(VoterDebugger::class)
+        ->args([
+            service('logger')->nullOnInvalid(),
+            param('nexara_api_platform_voter.debug'),
+        ])
+        ->call('enable', [])
+        ->tag('monolog.logger', ['channel' => 'security']);
+
+    $services->set(AuditLogger::class)
+        ->args([
+            service('logger')->nullOnInvalid(),
+            param('nexara_api_platform_voter.audit_enabled'),
+            param('nexara_api_platform_voter.audit_level'),
+            param('nexara_api_platform_voter.audit_include_context'),
+        ])
+        ->tag('monolog.logger', ['channel' => 'audit']);
+
+    $services->alias(AuditLoggerInterface::class, AuditLogger::class);
 
     $services->set(SubjectResolver::class);
     $services->alias(SubjectResolverInterface::class, SubjectResolver::class);
@@ -54,6 +76,10 @@ return static function (ContainerConfigurator $container): void {
             service(SubjectResolverInterface::class),
             service('security.authorization_checker'),
             param('nexara_api_platform_voter.enabled'),
+            param('nexara_api_platform_voter.strict_mode'),
+            service(VoterDebugger::class)->nullOnInvalid(),
+            service(AuditLoggerInterface::class)->nullOnInvalid(),
+            service('security.helper')->nullOnInvalid(),
         ]);
 
     $services->set(SecurityProcessor::class)
@@ -65,6 +91,10 @@ return static function (ContainerConfigurator $container): void {
             service(SubjectResolverInterface::class),
             service('security.authorization_checker'),
             param('nexara_api_platform_voter.enabled'),
+            param('nexara_api_platform_voter.strict_mode'),
+            service(VoterDebugger::class)->nullOnInvalid(),
+            service(AuditLoggerInterface::class)->nullOnInvalid(),
+            service('security.helper')->nullOnInvalid(),
         ]);
 
     if (class_exists(\Symfony\Bundle\MakerBundle\Maker\AbstractMaker::class)) {

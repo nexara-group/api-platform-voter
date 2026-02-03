@@ -1,0 +1,70 @@
+{% extends '@WebProfiler/Profiler/layout.html.twig' %}
+
+{% block toolbar %}
+    {% set icon %}
+        <span class="icon">{{ include('@NexaraApiPlatformVoter/Icon/voter.svg') }}</span>
+        <span class="sf-toolbar-value">{{ collector.count }}</span>
+    {% endset %}
+
+    {% set text %}
+        <div class="sf-toolbar-info-piece">
+            <b>Voter Decisions</b>
+            <span class="sf-toolbar-status">{{ collector.count }}</span>
+        </div>
+    {% endset %}
+
+    {{ include('@WebProfiler/Profiler/toolbar_item.html.twig', { link: true }) }}
+{% endblock %}
+
+{% block menu %}
+    <span class="label">
+        <span class="icon">{{ include('@NexaraApiPlatformVoter/Icon/voter.svg') }}</span>
+        <strong>Voter</strong>
+        {% if collector.count > 0 %}
+            <span class="count">
+                <span>{{ collector.count }}</span>
+            </span>
+        {% endif %}
+    </span>
+{% endblock %}
+
+{% block panel %}
+    <h2>Voter Authorization Decisions</h2>
+
+    {% if collector.count == 0 %}
+        <div class="empty">
+            <p>No voter decisions were made during this request.</p>
+        </div>
+    {% else %}
+        <table class="alt">
+            <thead>
+                <tr>
+                    <th>Voter</th>
+                    <th>Attribute</th>
+                    <th>Subject</th>
+                    <th>Decision</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for decision in collector.decisions %}
+                <tr>
+                    <td>{{ decision.voter }}</td>
+                    <td><code>{{ decision.attribute }}</code></td>
+                    <td>{{ decision.subject }}</td>
+                    <td>
+                        {% if decision.decision == 'GRANTED' %}
+                            <span class="label status-success">✓ GRANTED</span>
+                        {% elseif decision.decision == 'DENIED' %}
+                            <span class="label status-error">✗ DENIED</span>
+                        {% else %}
+                            <span class="label">{{ decision.decision }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ decision.timestamp.format('H:i:s.u') }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

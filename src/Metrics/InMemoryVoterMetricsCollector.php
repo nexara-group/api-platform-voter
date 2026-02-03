@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nexara\ApiPlatformVoter\Metrics;
 
+use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
+
 final class InMemoryVoterMetricsCollector implements VoterMetricsCollectorInterface
 {
     private array $checks = [];

@@ -6,6 +6,7 @@ namespace Nexara\ApiPlatformVoter\DependencyInjection\Compiler;
 
 use Nexara\ApiPlatformVoter\Attribute\Secured;
 use Nexara\ApiPlatformVoter\Security\VoterRegistry;
+use Nexara\ApiPlatformVoter\Util\PhpClassParser;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ReflectionClass;
@@ -48,6 +49,13 @@ final class VoterRegistryCompilerPass implements CompilerPassInterface
             if (! $file instanceof SplFileInfo) {
                 continue;
             }
+            
+            // Skip vendor, tests, and var directories for performance
+            $path = $file->getPathname();
+            if (str_contains($path, '/vendor/') || str_contains($path, '/tests/') || str_contains($path, '/var/')) {
+                continue;
+            }
+            
             if ($file->getExtension() !== 'php') {
                 continue;
             }
@@ -58,20 +66,14 @@ final class VoterRegistryCompilerPass implements CompilerPassInterface
 
     private function processFile(string $filePath, Definition $registry): void
     {
-        $content = file_get_contents($filePath);
-        if ($content === false) {
+        $parser = new PhpClassParser();
+        $classInfo = $parser->extractClassInfo($filePath);
+
+        if ($classInfo === null) {
             return;
         }
 
-        if (! preg_match('/namespace\s+([^;]+);/', $content, $nsMatch)) {
-            return;
-        }
-
-        if (! preg_match('/class\s+(\w+)/', $content, $classMatch)) {
-            return;
-        }
-
-        $className = $nsMatch[1] . '\\' . $classMatch[1];
+        $className = $classInfo['fqcn'];
 
         if (! class_exists($className)) {
             return;
