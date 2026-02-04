@@ -11,8 +11,10 @@ final class VoterDebugger
 {
     private array $decisions = [];
 
-    public function __construct(private readonly ?LoggerInterface $logger = null, private bool $enabled = false)
-    {
+    public function __construct(
+        private readonly ?LoggerInterface $logger = null,
+        private bool $enabled = false
+    ) {
     }
 
     public function enable(): void

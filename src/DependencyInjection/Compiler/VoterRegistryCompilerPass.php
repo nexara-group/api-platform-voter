@@ -49,13 +49,13 @@ final class VoterRegistryCompilerPass implements CompilerPassInterface
             if (! $file instanceof SplFileInfo) {
                 continue;
             }
-            
+
             // Skip vendor, tests, and var directories for performance
             $path = $file->getPathname();
             if (str_contains($path, '/vendor/') || str_contains($path, '/tests/') || str_contains($path, '/var/')) {
                 continue;
             }
-            
+
             if ($file->getExtension() !== 'php') {
                 continue;
             }

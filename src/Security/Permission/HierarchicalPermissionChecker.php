@@ -6,8 +6,9 @@ namespace Nexara\ApiPlatformVoter\Security\Permission;
 
 final class HierarchicalPermissionChecker
 {
-    public function __construct(private array $hierarchy = [])
-    {
+    public function __construct(
+        private array $hierarchy = []
+    ) {
     }
 
     public function setHierarchy(array $hierarchy): void

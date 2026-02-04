@@ -152,7 +152,7 @@ final class MakeApiResourceVoter extends AbstractMaker
     ): void {
         $testClassName = $voterClassName . 'Test';
         $testFqcn = 'App\\Tests\\Security\\Voter\\' . $testClassName;
-        
+
         $resourceShort = Str::getShortClassName($resourceClass);
         $finalPrefix = $prefix ?? strtolower($resourceShort);
 

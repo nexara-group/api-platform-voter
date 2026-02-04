@@ -28,7 +28,7 @@ final class AuditLogger implements AuditLoggerInterface
 
         if ($this->logger) {
             $context = $this->includeContext ? $entry->context : [];
-            
+
             $this->logger->info('Authorization decision', [
                 'attribute' => $entry->attribute,
                 'subject_type' => $entry->subjectType,

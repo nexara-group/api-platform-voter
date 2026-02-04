@@ -7,17 +7,17 @@ namespace Nexara\ApiPlatformVoter\Provider;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Nexara\ApiPlatformVoter\ApiPlatform\Security\OperationToVoterAttributeMapperInterface;
-use Nexara\ApiPlatformVoter\Metadata\ResourceAccessMetadataResolverInterface;
 use Nexara\ApiPlatformVoter\ApiPlatform\Security\SubjectResolverInterface;
-use Nexara\ApiPlatformVoter\Voter\TargetVoterSubject;
-use Nexara\ApiPlatformVoter\Exception\NoVoterFoundException;
-use Nexara\ApiPlatformVoter\Debug\VoterDebugger;
-use Nexara\ApiPlatformVoter\Audit\AuditLoggerInterface;
 use Nexara\ApiPlatformVoter\Audit\AuditEntry;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
+use Nexara\ApiPlatformVoter\Audit\AuditLoggerInterface;
+use Nexara\ApiPlatformVoter\Debug\VoterDebugger;
+use Nexara\ApiPlatformVoter\Exception\NoVoterFoundException;
+use Nexara\ApiPlatformVoter\Metadata\ResourceAccessMetadataResolverInterface;
+use Nexara\ApiPlatformVoter\Voter\TargetVoterSubject;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
  * Security provider that enforces voter-based authorization for API Platform operations.
@@ -73,7 +73,7 @@ final class SecurityProvider implements ProviderInterface
         }
 
         $granted = $this->authorizationChecker->isGranted($attribute, $subject);
-        
+
         if ($this->voterDebugger?->isEnabled()) {
             $this->voterDebugger->recordDecision(
                 'SecurityProvider',
@@ -92,7 +92,7 @@ final class SecurityProvider implements ProviderInterface
         if ($this->auditLogger) {
             $user = $this->security?->getUser();
             $username = $user ? (method_exists($user, 'getUserIdentifier') ? $user->getUserIdentifier() : (string) $user) : null;
-            
+
             $entry = AuditEntry::fromDecision(
                 $attribute,
                 $subject,
@@ -105,15 +105,15 @@ final class SecurityProvider implements ProviderInterface
                     'resource' => $resourceClass,
                 ]
             );
-            
+
             $this->auditLogger->log($entry);
         }
-        
+
         if (! $granted) {
             if ($this->strictMode && ! $this->hasVoterForAttribute($attribute, $subject)) {
                 throw new NoVoterFoundException($attribute, $subject);
             }
-            
+
             throw new AccessDeniedException(sprintf(
                 'Access denied for attribute "%s" on resource "%s" (operation "%s").',
                 $attribute,

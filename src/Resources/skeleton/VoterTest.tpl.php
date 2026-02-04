@@ -65,9 +65,9 @@ final class <?= $class_name ?> extends VoterTestCase
         $this->assertVoterGrants('<?= $prefix ?>:delete', $object);
     }
 
-<?php foreach ($custom_operations as $operation): 
+<?php foreach ($custom_operations as $operation):
     $camelCased = str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $operation)));
-?>
+    ?>
     public function testCustomOperation<?= $camelCased ?>(): void
     {
         $this->mockUser(['ROLE_USER']);

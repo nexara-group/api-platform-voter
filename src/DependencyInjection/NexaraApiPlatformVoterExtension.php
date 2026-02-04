@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Nexara\ApiPlatformVoter\DependencyInjection;
 
-use Nexara\ApiPlatformVoter\Voter\AutoConfiguredCrudVoter;
 use Nexara\ApiPlatformVoter\Security\VoterRegistry;
+use Nexara\ApiPlatformVoter\Voter\AutoConfiguredCrudVoter;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -36,6 +36,13 @@ final class NexaraApiPlatformVoterExtension extends Extension implements Prepend
         $container->setParameter('nexara_api_platform_voter.audit_enabled', $config['audit']['enabled']);
         $container->setParameter('nexara_api_platform_voter.audit_level', $config['audit']['level']);
         $container->setParameter('nexara_api_platform_voter.audit_include_context', $config['audit']['include_context']);
+        $container->setParameter('nexara_api_platform_voter.custom_providers_auto_secure', $config['custom_providers']['auto_secure']);
+        $container->setParameter('nexara_api_platform_voter.secure_custom_providers', $config['custom_providers']['secure']);
+        $container->setParameter('nexara_api_platform_voter.skip_custom_providers', $config['custom_providers']['skip']);
+        $container->setParameter('nexara_api_platform_voter.operation_patterns', $config['operation_mapping']['custom_operation_patterns']);
+        $container->setParameter('nexara_api_platform_voter.naming_convention', $config['operation_mapping']['naming_convention']);
+        $container->setParameter('nexara_api_platform_voter.normalize_names', $config['operation_mapping']['normalize_names']);
+        $container->setParameter('nexara_api_platform_voter.detect_by_uri', $config['operation_mapping']['detect_by_uri']);
 
         $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.php');

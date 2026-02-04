@@ -27,7 +27,7 @@ final class AuditEntry
         ?string $userAgent = null,
         array $context = []
     ): self {
-        $subjectType = is_object($subject) ? $subject::class : gettype($subject);
+        $subjectType = get_debug_type($subject);
 
         return new self(
             $attribute,

@@ -9,6 +9,24 @@ use Nexara\ApiPlatformVoter\Security\VoterRegistry;
 use ReflectionClass;
 use ReflectionMethod;
 
+/**
+ * @deprecated Since 0.3.0, use CrudVoter::autoConfigure() instead.
+ *
+ * @example Migration:
+ * ```php
+ * // OLD:
+ * final class ArticleVoter extends AutoConfiguredCrudVoter { }
+ *
+ * // NEW:
+ * final class ArticleVoter extends CrudVoter
+ * {
+ *     public function __construct(private readonly Security $security)
+ *     {
+ *         $this->autoConfigure();
+ *     }
+ * }
+ * ```
+ */
 abstract class AutoConfiguredCrudVoter extends CrudVoter
 {
     private bool $autoConfigured = false;

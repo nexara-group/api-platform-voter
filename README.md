@@ -8,15 +8,26 @@ A Symfony bundle that enforces consistent voter-based authorization for API Plat
 
 ## Features
 
+### Core Features
 - ✅ **Opt-in security** per resource via `#[Secured]` attribute
 - ✅ **Automatic CRUD mapping** to voter attributes (`{prefix}:list`, `{prefix}:create`, etc.)
 - ✅ **Custom operation support** with explicit voter methods
 - ✅ **UPDATE operations** receive both new and previous objects for comparison
 - ✅ **Flexible configuration** with customizable prefixes and targeted voters
-- ✅ **Performance optimized** with metadata caching
 - ✅ **Type-safe** with PHP 8.1+ and strict types
 - ✅ **Well-tested** with comprehensive test coverage
-- ✅ **Maker command** for generating voter classes
+
+### Advanced Features (v0.3+)
+- 🧪 **Testing utilities** with role hierarchy support (`VoterTestTrait`, `SecurityBuilder`)
+- ⚙️ **Flexible operation mapping** with configurable naming conventions
+- 🔒 **Automatic custom provider security** with opt-in/opt-out configuration
+- 🐛 **Debug tools** with voter chain visualization
+- 📊 **Validation commands** for voter implementations
+- 🔄 **Migration helpers** from native API Platform security
+- 🌐 **GraphQL support** with field-level authorization
+- 🏢 **Multi-tenancy** with automatic tenant context injection
+- ⚡ **Performance optimizations** with lazy loading and caching
+- 🛠️ **Maker command** with pre-defined templates
 
 ## Requirements
 
@@ -58,7 +69,9 @@ Use the maker command to generate a voter:
 php bin/console make:api-resource-voter
 ```
 
-Or create one manually:
+Or create one manually with **3 configuration modes** (v0.3+):
+
+#### Mode 1: Auto-Configuration (Recommended)
 
 ```php
 namespace App\Security\Voter;
@@ -69,16 +82,9 @@ use Symfony\Bundle\SecurityBundle\Security;
 
 final class ArticleVoter extends CrudVoter
 {
-    public function __construct(
-        private readonly Security $security,
-    ) {
-        $this->setPrefix('article');
-        $this->setResourceClasses(Article::class);
-    }
-
-    protected function canList(): bool
+    public function __construct(private readonly Security $security)
     {
-        return true; // Everyone can list articles
+        $this->autoConfigure(); // ✨ Zero config!
     }
 
     protected function canCreate(): bool
@@ -86,20 +92,52 @@ final class ArticleVoter extends CrudVoter
         return $this->security->isGranted('ROLE_USER');
     }
 
-    protected function canRead(mixed $object): bool
-    {
-        return true; // Everyone can read articles
-    }
-
     protected function canUpdate(mixed $object, mixed $previousObject): bool
     {
-        // Only the author can update their own articles
         return $object->getAuthor() === $this->security->getUser();
     }
 
     protected function canDelete(mixed $object): bool
     {
         return $this->security->isGranted('ROLE_ADMIN');
+    }
+}
+```
+
+#### Mode 2: Fluent Builder (Modern)
+
+```php
+final class ArticleVoter extends CrudVoter
+{
+    public function __construct(private readonly Security $security)
+    {
+        $this->configure()
+            ->prefix('article')
+            ->resource(Article::class)
+            ->autoDiscoverOperations(); // Auto-finds can* methods
+    }
+
+    protected function canUpdate(mixed $object, mixed $previousObject): bool
+    {
+        return $object->getAuthor() === $this->security->getUser();
+    }
+}
+```
+
+#### Mode 3: Manual (Backward Compatible)
+
+```php
+final class ArticleVoter extends CrudVoter
+{
+    public function __construct(private readonly Security $security)
+    {
+        $this->setPrefix('article');
+        $this->setResourceClasses(Article::class);
+    }
+
+    protected function canUpdate(mixed $object, mixed $previousObject): bool
+    {
+        return $object->getAuthor() === $this->security->getUser();
     }
 }
 ```
@@ -156,25 +194,52 @@ final class ArticleVoter extends CrudVoter
 }
 ```
 
-## Auto-Configuration
+## Voter Configuration Modes (v0.3+)
 
-Use `AutoConfiguredCrudVoter` for automatic setup:
+The unified `CrudVoter` supports 3 configuration modes:
+
+### 1. Auto-Configuration (Zero Config)
 
 ```php
-use Nexara\ApiPlatformVoter\Voter\AutoConfiguredCrudVoter;
-
-final class ArticleVoter extends AutoConfiguredCrudVoter
+final class ArticleVoter extends CrudVoter
 {
-    public function __construct(
-        private readonly Security $security,
-    ) {
-        // No need to call setPrefix() or setResourceClasses()
-        // They are automatically configured from the resource attribute
+    public function __construct(private readonly Security $security)
+    {
+        $this->autoConfigure(); // Reads from #[Secured] + VoterRegistry
     }
-
-    // Implement your authorization methods...
 }
 ```
+
+### 2. Fluent Builder (Modern API)
+
+```php
+final class ArticleVoter extends CrudVoter
+{
+    public function __construct(private readonly Security $security)
+    {
+        $this->configure()
+            ->prefix('article')
+            ->resource(Article::class)
+            ->operations('publish', 'archive')
+            ->autoDiscoverOperations(); // Auto-finds can* methods
+    }
+}
+```
+
+### 3. Manual Configuration (Backward Compatible)
+
+```php
+final class ArticleVoter extends CrudVoter
+{
+    public function __construct(private readonly Security $security)
+    {
+        $this->setPrefix('article');
+        $this->setResourceClasses(Article::class);
+    }
+}
+```
+
+> **Migration from v0.2.x:** See [VOTER_MIGRATION_GUIDE.md](VOTER_MIGRATION_GUIDE.md)
 
 ## Configuration
 
@@ -187,6 +252,30 @@ nexara_api_platform_voter:
     
     # Enforce authorization for collection list operations (default: true)
     enforce_collection_list: true
+    
+    # Custom providers security (v0.3+)
+    custom_providers:
+        auto_secure: true  # Automatically secure all custom providers
+        secure: []         # Explicitly secure specific providers
+        skip: []           # Skip specific providers
+    
+    # Operation mapping configuration (v0.3+)
+    operation_mapping:
+        custom_operation_patterns:
+            - '!^_api_'  # Exclude _api_* operations
+        naming_convention: 'preserve'  # snake_case, camelCase, kebab-case, preserve
+        normalize_names: false
+        detect_by_uri: true  # Detect custom ops by URI pattern
+    
+    # Debug mode (v0.3+)
+    debug: false
+    debug_output: 'detailed'  # simple, detailed, json
+    
+    # Audit logging (v0.3+)
+    audit:
+        enabled: false
+        level: 'all'  # all, denied_only, granted_only
+        include_context: true
 ```
 
 ## Attribute Options
@@ -253,7 +342,164 @@ public function __construct()
 }
 ```
 
+### GraphQL Support
+
+For GraphQL APIs, use `GraphQLCrudVoter` with field-level authorization:
+
+```php
+use Nexara\ApiPlatformVoter\GraphQL\GraphQLCrudVoter;
+
+final class ArticleVoter extends GraphQLCrudVoter
+{
+    protected function canAccessField(string $fieldName, mixed $object): bool
+    {
+        return match ($fieldName) {
+            'email' => $this->security->isGranted('ROLE_ADMIN'),
+            'internalNotes' => $object->getAuthor() === $this->security->getUser(),
+            default => true,
+        };
+    }
+    
+    protected function canModifyField(string $fieldName, mixed $object, mixed $newValue): bool
+    {
+        return match ($fieldName) {
+            'author' => $this->security->isGranted('ROLE_ADMIN'),
+            'publishedAt' => $this->security->isGranted('ROLE_MODERATOR'),
+            default => true,
+        };
+    }
+}
+```
+
+### Multi-Tenancy
+
+For multi-tenant applications, use `TenantAwareVoterTrait`:
+
+```php
+use Nexara\ApiPlatformVoter\Voter\CrudVoter;
+use Nexara\ApiPlatformVoter\MultiTenancy\TenantAwareVoterTrait;
+
+final class ArticleVoter extends CrudVoter
+{
+    use TenantAwareVoterTrait;
+    
+    protected function canUpdate(mixed $object, mixed $previousObject): bool
+    {
+        // TenantContext is automatically injected
+        if (!$this->belongsToCurrentTenant($object)) {
+            return false;
+        }
+        
+        return $object->getAuthor() === $this->security->getUser();
+    }
+}
+```
+
+### Debug & Troubleshooting
+
+Visualize voter decision chains:
+
+```php
+use Nexara\ApiPlatformVoter\Debug\VoterChainVisualizer;
+
+$visualizer = new VoterChainVisualizer($debugger);
+
+// Text visualization
+echo $visualizer->visualize('article:update');
+
+// Tree visualization
+echo $visualizer->visualizeAsTree('article:update');
+
+// Summary
+echo $visualizer->summarize('article:update');
+```
+
+Enable debug mode in configuration:
+
+```yaml
+nexara_api_platform_voter:
+    debug: true
+    debug_output: 'detailed'
+```
+
 ## Testing
+
+### Testing Your Voters
+
+The bundle provides powerful testing utilities with full role hierarchy support:
+
+#### Using VoterTestTrait
+
+```php
+use Nexara\ApiPlatformVoter\Testing\VoterTestTrait;
+use PHPUnit\Framework\TestCase;
+
+class ArticleVoterTest extends TestCase
+{
+    use VoterTestTrait;
+    
+    public function testModeratorCanPublish(): void
+    {
+        $user = $this->createUser(['ROLE_MODERATOR']);
+        
+        // Creates Security with proper role hierarchy
+        $security = $this->createSecurityWithRoleHierarchy([
+            'ROLE_ADMIN' => ['ROLE_MODERATOR', 'ROLE_USER'],
+            'ROLE_MODERATOR' => ['ROLE_USER'],
+        ], $user);
+        
+        $voter = new ArticleVoter($security);
+        
+        // Now $security->isGranted('ROLE_USER') returns true for MODERATOR
+        $article = new Article();
+        $this->assertTrue($voter->canPublish($article, null));
+    }
+}
+```
+
+#### Using SecurityBuilder
+
+```php
+use Nexara\ApiPlatformVoter\Testing\SecurityBuilder;
+
+$security = SecurityBuilder::create()
+    ->withRoleHierarchy([
+        'ROLE_ADMIN' => ['ROLE_MODERATOR', 'ROLE_USER'],
+        'ROLE_MODERATOR' => ['ROLE_USER'],
+    ])
+    ->withUser($user)
+    ->build();
+
+$voter = new ArticleVoter($security);
+```
+
+#### Using VoterTestCase
+
+```php
+use Nexara\ApiPlatformVoter\Testing\VoterTestCase;
+
+class ArticleVoterTest extends VoterTestCase
+{
+    protected function createVoter(): VoterInterface
+    {
+        return new ArticleVoter($this->createMock(Security::class));
+    }
+    
+    public function testGrantsAccess(): void
+    {
+        $this->mockUser(['ROLE_USER']);
+        $this->assertVoterGrants('article:create', new Article());
+    }
+    
+    public function testDeniesAccess(): void
+    {
+        $this->mockAnonymousUser();
+        $this->assertVoterDenies('article:delete', new Article());
+    }
+}
+```
+
+### Running Tests
 
 The bundle includes a comprehensive test suite:
 
@@ -264,6 +510,41 @@ composer test
 # Run all quality checks
 composer qa
 ```
+
+## Console Commands
+
+### Validate Voter Implementations
+
+```bash
+# Validate all voters
+php bin/console voter:validate
+
+# Validate specific voter
+php bin/console voter:validate --voter=App\\Voter\\ArticleVoter
+
+# Show detailed output
+php bin/console voter:validate --detailed
+```
+
+Validates:
+- ✅ CRUD method implementations
+- ✅ Custom operation methods
+- ✅ VoterRegistry registration
+- ✅ `#[Secured]` attribute on resources
+- ✅ Test coverage
+- ✅ Method signatures
+
+### Analyze Migration from Native Security
+
+```bash
+php bin/console voter:analyze-migration
+```
+
+Provides:
+- 📊 Analysis of resources with native security expressions
+- 📋 Step-by-step migration plan
+- ⏱️ Estimated migration time
+- 🎯 Complexity assessment
 
 ## Quality Assurance
 

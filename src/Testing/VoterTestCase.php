@@ -57,6 +57,10 @@ abstract class VoterTestCase extends TestCase
         );
     }
 
+    /**
+     * @param array<string> $roles
+     * @param array<string, mixed> $additionalMethods
+     */
     protected function mockUser(
         array $roles = [],
         string $identifier = 'test@example.com',
@@ -67,6 +71,7 @@ abstract class VoterTestCase extends TestCase
         $user->method('getUserIdentifier')->willReturn($identifier);
 
         foreach ($additionalMethods as $method => $returnValue) {
+            /** @var \PHPUnit\Framework\MockObject\MockObject $user */
             $user->method($method)->willReturn($returnValue);
         }
 

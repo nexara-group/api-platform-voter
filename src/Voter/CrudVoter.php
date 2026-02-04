@@ -43,6 +43,16 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
  * }
  * ```
  */
+/**
+ * Base voter for API Platform CRUD operations with modern PHP 2025 features.
+ *
+ * Supports 3 configuration modes:
+ * 1. Manual: setPrefix() + setResourceClasses() (backward compatible)
+ * 2. Fluent Builder: configure()->prefix()->resource()->autoDiscoverOperations()
+ * 3. Auto-Configuration: autoConfigure() (reads from #[Secured] attribute)
+ *
+ * @template T of object
+ */
 abstract class CrudVoter extends Voter
 {
     protected const LIST = 'list';
@@ -57,18 +67,88 @@ abstract class CrudVoter extends Voter
 
     protected string $prefix;
 
-    /** @var array<int, class-string> */
+    /**
+     * @var array<int, class-string>
+     */
     protected array $resourceClasses = [];
 
-    /** @var array<int, string> */
+    /**
+     * @var array<int, string>
+     */
     protected array $customOperations = [];
 
+    private bool $autoConfigured = false;
+
+    private ?\Nexara\ApiPlatformVoter\Security\VoterRegistry $voterRegistry = null;
+
+    /**
+     * Fluent configuration API (PHP 2025 builder pattern).
+     *
+     * @example
+     * ```php
+     * $this->configure()
+     *     ->prefix('article')
+     *     ->resource(Article::class)
+     *     ->autoDiscoverOperations();
+     * ```
+     */
+    protected function configure(): VoterConfigBuilder
+    {
+        return new VoterConfigBuilder($this);
+    }
+
+    /**
+     * Auto-configure from VoterRegistry and #[Secured] attribute.
+     *
+     * Automatically sets:
+     * - prefix from #[Secured(prefix: '...')] or resource class name
+     * - resource class from registry
+     * - custom operations from can* methods
+     *
+     * @example
+     * ```php
+     * public function __construct(private readonly Security $security)
+     * {
+     *     $this->autoConfigure();
+     * }
+     * ```
+     */
+    protected function autoConfigure(): void
+    {
+        if ($this->autoConfigured) {
+            return;
+        }
+
+        $resourceClass = $this->getResourceClassFromRegistry();
+
+        if ($resourceClass) {
+            $this->resourceClasses = [$resourceClass];
+            $this->initializePrefixFromResource($resourceClass);
+            $this->autoDiscoverOperations();
+        }
+
+        $this->autoConfigured = true;
+    }
+
+    /**
+     * @internal Used by DI container
+     */
+    public function setVoterRegistry(\Nexara\ApiPlatformVoter\Security\VoterRegistry $voterRegistry): void
+    {
+        $this->voterRegistry = $voterRegistry;
+    }
+
+    /**
+     * Manual configuration (backward compatible).
+     */
     protected function setPrefix(string $prefix): void
     {
         $this->prefix = $prefix;
     }
 
     /**
+     * Manual configuration (backward compatible).
+     *
      * @param array<int, class-string>|class-string $resourceClasses
      */
     protected function setResourceClasses(array|string $resourceClasses): void
@@ -85,6 +165,43 @@ abstract class CrudVoter extends Voter
             $ref = new ReflectionClass($this->resourceClasses[0]);
             $this->prefix = strtolower($ref->getShortName());
         }
+    }
+
+    /**
+     * @internal Used by VoterConfigBuilder
+     * @param array<int, string> $operations
+     */
+    public function setCustomOperations(array $operations): void
+    {
+        $this->customOperations = $operations;
+    }
+
+    /**
+     * Auto-discover custom operations from can* methods.
+     *
+     * @internal Used by VoterConfigBuilder and autoConfigure()
+     */
+    public function autoDiscoverOperations(): void
+    {
+        $reflection = new ReflectionClass($this);
+        $methods = $reflection->getMethods(\ReflectionMethod::IS_PROTECTED | \ReflectionMethod::IS_PUBLIC);
+
+        $customOps = [];
+
+        foreach ($methods as $method) {
+            $name = $method->getName();
+
+            if (in_array($name, ['canList', 'canCreate', 'canRead', 'canUpdate', 'canDelete', 'canCustomOperation'], true)) {
+                continue;
+            }
+
+            if (str_starts_with($name, 'can') && strlen($name) > 3) {
+                $operation = $this->methodNameToOperation($name);
+                $customOps[] = $operation;
+            }
+        }
+
+        $this->customOperations = $customOps;
     }
 
     protected function supports(string $attribute, mixed $subject): bool
@@ -167,6 +284,13 @@ abstract class CrudVoter extends Voter
 
     protected function canCustomOperation(string $operation, mixed $object, mixed $previousObject): bool
     {
+        // Try to call dynamic can* method (auto-discovered operations)
+        $methodName = 'can' . $this->operationToMethodName($operation);
+
+        if (method_exists($this, $methodName)) {
+            return $this->{$methodName}($object, $previousObject);
+        }
+
         return false;
     }
 
@@ -232,5 +356,71 @@ abstract class CrudVoter extends Voter
 
         $ref = new ReflectionClass($this->resourceClasses[0]);
         $this->prefix = strtolower($ref->getShortName());
+    }
+
+    private function getResourceClassFromRegistry(): ?string
+    {
+        if (! $this->voterRegistry) {
+            return null;
+        }
+
+        return $this->voterRegistry->getResourceClass(static::class);
+    }
+
+    private function initializePrefixFromResource(string $resourceClass): void
+    {
+        if (isset($this->prefix)) {
+            return;
+        }
+
+        if (! class_exists($resourceClass)) {
+            return;
+        }
+
+        $reflection = new ReflectionClass($resourceClass);
+        $attributes = $reflection->getAttributes(\Nexara\ApiPlatformVoter\Attribute\Secured::class);
+
+        if ($attributes !== []) {
+            $attribute = $attributes[0]->newInstance();
+            if ($attribute->prefix) {
+                $this->prefix = $attribute->prefix;
+
+                return;
+            }
+        }
+
+        $ref = new ReflectionClass($resourceClass);
+        $this->prefix = strtolower($ref->getShortName());
+    }
+
+    /**
+     * Convert method name to operation name.
+     *
+     * canPublishArticle -> publish_article (preserves original format)
+     */
+    private function methodNameToOperation(string $methodName): string
+    {
+        // Remove 'can' prefix
+        $operation = substr($methodName, 3);
+
+        // Convert to lowercase first letter
+        return lcfirst($operation);
+    }
+
+    /**
+     * Convert operation name to method name.
+     *
+     * publish_article -> PublishArticle
+     * publish-article -> PublishArticle
+     * publishArticle -> PublishArticle
+     */
+    private function operationToMethodName(string $operation): string
+    {
+        // Replace hyphens and underscores with spaces, then capitalize each word
+        $str = str_replace(['-', '_'], ' ', $operation);
+        $str = ucwords($str);
+
+        // Remove spaces
+        return str_replace(' ', '', $str);
     }
 }

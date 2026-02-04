@@ -47,6 +47,48 @@ abstract class GraphQLCrudVoter extends CrudVoter implements GraphQLVoterInterfa
         return $this->canCustomOperation($mutationName, $subject, null);
     }
 
+    /**
+     * Field-level authorization for GraphQL.
+     *
+     * Override this method to control access to specific fields.
+     *
+     * @param string $fieldName The field being accessed
+     * @param mixed $object The parent object
+     * @return bool True if access is granted, false otherwise
+     *
+     * @example
+     * ```php
+     * protected function canAccessField(string $fieldName, mixed $object): bool
+     * {
+     *     return match ($fieldName) {
+     *         'email' => $this->security->isGranted('ROLE_ADMIN'),
+     *         'internalNotes' => $object->getAuthor() === $this->security->getUser(),
+     *         default => true,
+     *     };
+     * }
+     * ```
+     */
+    protected function canAccessField(string $fieldName, mixed $object): bool
+    {
+        // By default, all fields are accessible
+        // Override in child classes for field-level security
+        return true;
+    }
+
+    /**
+     * Checks if a specific field can be modified via GraphQL mutation.
+     *
+     * @param string $fieldName The field being modified
+     * @param mixed $object The object being modified
+     * @param mixed $newValue The new value being set
+     * @return bool True if modification is allowed
+     */
+    protected function canModifyField(string $fieldName, mixed $object, mixed $newValue): bool
+    {
+        // By default, allow modification if update is allowed
+        return true;
+    }
+
     private function normalizeSubject(mixed $subject): array
     {
         if (is_array($subject)) {

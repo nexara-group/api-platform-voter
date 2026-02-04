@@ -6,18 +6,19 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Nexara\ApiPlatformVoter\ApiPlatform\Security\OperationToVoterAttributeMapper;
 use Nexara\ApiPlatformVoter\ApiPlatform\Security\OperationToVoterAttributeMapperInterface;
-use Nexara\ApiPlatformVoter\Metadata\ResourceAccessMetadataResolver;
-use Nexara\ApiPlatformVoter\Metadata\ResourceAccessMetadataResolverInterface;
 use Nexara\ApiPlatformVoter\ApiPlatform\Security\SubjectResolver;
 use Nexara\ApiPlatformVoter\ApiPlatform\Security\SubjectResolverInterface;
-use Nexara\ApiPlatformVoter\Processor\SecurityProcessor;
-use Nexara\ApiPlatformVoter\Provider\SecurityProvider;
-use Nexara\ApiPlatformVoter\Maker\MakeApiResourceVoter;
-use Nexara\ApiPlatformVoter\Voter\AutoConfiguredCrudVoter;
-use Nexara\ApiPlatformVoter\Security\VoterRegistry;
-use Nexara\ApiPlatformVoter\Debug\VoterDebugger;
 use Nexara\ApiPlatformVoter\Audit\AuditLogger;
 use Nexara\ApiPlatformVoter\Audit\AuditLoggerInterface;
+use Nexara\ApiPlatformVoter\DataCollector\VoterDataCollector;
+use Nexara\ApiPlatformVoter\Debug\VoterDebugger;
+use Nexara\ApiPlatformVoter\Maker\MakeApiResourceVoter;
+use Nexara\ApiPlatformVoter\Metadata\ResourceAccessMetadataResolver;
+use Nexara\ApiPlatformVoter\Metadata\ResourceAccessMetadataResolverInterface;
+use Nexara\ApiPlatformVoter\Processor\SecurityProcessor;
+use Nexara\ApiPlatformVoter\Provider\SecurityProvider;
+use Nexara\ApiPlatformVoter\Security\VoterRegistry;
+use Nexara\ApiPlatformVoter\Voter\AutoConfiguredCrudVoter;
 
 return static function (ContainerConfigurator $container): void {
     $services = $container->services();
@@ -29,6 +30,10 @@ return static function (ContainerConfigurator $container): void {
     $services->set(OperationToVoterAttributeMapper::class)
         ->args([
             param('nexara_api_platform_voter.enforce_collection_list'),
+            param('nexara_api_platform_voter.operation_patterns'),
+            param('nexara_api_platform_voter.naming_convention'),
+            param('nexara_api_platform_voter.normalize_names'),
+            param('nexara_api_platform_voter.detect_by_uri'),
         ]);
 
     $services->alias(OperationToVoterAttributeMapperInterface::class, OperationToVoterAttributeMapper::class);
@@ -43,7 +48,9 @@ return static function (ContainerConfigurator $container): void {
             param('nexara_api_platform_voter.debug'),
         ])
         ->call('enable', [])
-        ->tag('monolog.logger', ['channel' => 'security']);
+        ->tag('monolog.logger', [
+            'channel' => 'security',
+        ]);
 
     $services->set(AuditLogger::class)
         ->args([
@@ -52,9 +59,20 @@ return static function (ContainerConfigurator $container): void {
             param('nexara_api_platform_voter.audit_level'),
             param('nexara_api_platform_voter.audit_include_context'),
         ])
-        ->tag('monolog.logger', ['channel' => 'audit']);
+        ->tag('monolog.logger', [
+            'channel' => 'audit',
+        ]);
 
     $services->alias(AuditLoggerInterface::class, AuditLogger::class);
+
+    $services->set(VoterDataCollector::class)
+        ->args([
+            service(VoterDebugger::class),
+        ])
+        ->tag('data_collector', [
+            'template' => '@NexaraApiPlatformVoter/Collector/voter.html.twig',
+            'id' => 'nexara.voter',
+        ]);
 
     $services->set(SubjectResolver::class);
     $services->alias(SubjectResolverInterface::class, SubjectResolver::class);

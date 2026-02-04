@@ -10,11 +10,11 @@ final class NoVoterFoundException extends AccessDeniedException
 {
     public function __construct(string $attribute, mixed $subject)
     {
-        $subjectType = is_object($subject) ? $subject::class : gettype($subject);
-        
+        $subjectType = get_debug_type($subject);
+
         parent::__construct(
             sprintf(
-                'No voter found to handle attribute "%s" for subject of type "%s". '.
+                'No voter found to handle attribute "%s" for subject of type "%s". ' .
                 'Enable strict_mode: false in configuration to allow silent denial.',
                 $attribute,
                 $subjectType

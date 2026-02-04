@@ -20,7 +20,7 @@ trait TenantAwareVoterTrait
 
     protected function belongsToCurrentTenant(mixed $object): bool
     {
-        if (!$object instanceof TenantAwareInterface) {
+        if (! $object instanceof TenantAwareInterface) {
             return true;
         }
 
@@ -39,7 +39,7 @@ trait TenantAwareVoterTrait
 
     protected function belongsToTenant(mixed $object, TenantInterface $tenant): bool
     {
-        if (!$object instanceof TenantAwareInterface) {
+        if (! $object instanceof TenantAwareInterface) {
             return true;
         }
 

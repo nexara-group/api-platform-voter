@@ -11,6 +11,7 @@ use PhpParser\ParserFactory;
 final class PhpClassParser
 {
     private readonly \PhpParser\Parser $parser;
+
     private readonly NodeFinder $nodeFinder;
 
     public function __construct()
@@ -21,7 +22,7 @@ final class PhpClassParser
 
     public function extractClassInfo(string $filePath): ?array
     {
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             return null;
         }
 
@@ -48,7 +49,7 @@ final class PhpClassParser
                 'class' => $className,
                 'fqcn' => $namespace . '\\' . $className,
             ];
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return null;
         }
     }
@@ -56,7 +57,7 @@ final class PhpClassParser
     private function findNamespace(array $ast): ?string
     {
         $namespaceNode = $this->nodeFinder->findFirstInstanceOf($ast, Node\Stmt\Namespace_::class);
-        
+
         if ($namespaceNode instanceof Node\Stmt\Namespace_ && $namespaceNode->name) {
             return $namespaceNode->name->toString();
         }
@@ -67,7 +68,7 @@ final class PhpClassParser
     private function findClassName(array $ast): ?string
     {
         $classNode = $this->nodeFinder->findFirstInstanceOf($ast, Node\Stmt\Class_::class);
-        
+
         if ($classNode instanceof Node\Stmt\Class_ && $classNode->name) {
             return $classNode->name->toString();
         }

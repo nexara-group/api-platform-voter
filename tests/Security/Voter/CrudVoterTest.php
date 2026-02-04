@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Nexara\ApiPlatformVoter\Tests\Security\Voter;
 
-use Nexara\ApiPlatformVoter\Security\Voter\CrudVoter;
-use Nexara\ApiPlatformVoter\Security\Voter\TargetVoterSubject;
+use Nexara\ApiPlatformVoter\Voter\CrudVoter;
+use Nexara\ApiPlatformVoter\Voter\TargetVoterSubject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;

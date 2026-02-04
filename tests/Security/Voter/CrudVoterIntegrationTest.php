@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Nexara\ApiPlatformVoter\Tests\Security\Voter;
 
-use Nexara\ApiPlatformVoter\Security\Voter\CrudVoter;
 use Nexara\ApiPlatformVoter\Testing\VoterTestCase;
+use Nexara\ApiPlatformVoter\Voter\CrudVoter;
 
 final class CrudVoterIntegrationTest extends VoterTestCase
 {
